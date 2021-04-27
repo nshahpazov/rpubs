@@ -1,6 +1,5 @@
 ---
-title: "Статистика с R"
-date: "4/17/2021"
+title: "Практикум по Вероятности и Статистика с R - Записки"
 output:
   html_document:
     toc: true
