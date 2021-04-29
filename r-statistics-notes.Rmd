@@ -643,7 +643,8 @@ $$
 с цел да видим, че наистина имат $\chi^2$ разпределения.
 
 ```{r chi-sq-simulation}
-simulate_chsq <- function(n = 60, th_probs, hyp_probs, k = length(hyp_probs)) {
+simulate_chsq <- function(n = 60, th_probs, hyp_probs) {
+  k = length(hyp_probs)
   # Правим извадка от к на брой групи с теоретични вероятности за всяка - th_probs
   x <- sample(1:k, prob = th_probs, size = n, replace = TRUE)
   
@@ -663,7 +664,7 @@ s <- 2000
 
 # за степени на свобода от 4 до 10 генерираме T^2 статистики
 5:11 %>%
-  map(
+  imap(
     ~data.frame(
       # Задаваме истинските вероятности за нулева хипотеза, така че да видим разпределенията
       x = replicate(s, simulate_chsq(n, th_probs = rep(1 / .x, .x), hyp_probs = rep(1 / .x, .x))),
