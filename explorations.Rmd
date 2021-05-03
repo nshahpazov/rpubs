@@ -1,0 +1,163 @@
+---
+title: "explorations"
+author: "Nikola Shahpazov"
+date: "4/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+
+```{r}
+install.packages("RcppAlgos")
+library("RcppAlgos")
+library("glue")
+
+N <- primeCount(8589934591) - primeCount(8589884592)
+alpha <- 5 # shape
+beta <- 1 # rate
+
+x <- rgamma(N, shape = alpha, rate = beta)
+
+# calculation of the quantile
+q95 <- quantile(x, .95)
+```
+
+
+```{r}
+# bootstrap resample
+quantiles <- replicate(200000, quantile(sample(x, replace = TRUE), .95, names = FALSE))
+
+q1 <- quantile(quantiles, 0.025, names = FALSE)
+q2 <- quantile(quantiles, 0.975, names = FALSE)
+
+c(q1, q2)
+```
+
+
+```{r}
+# install.packages("latex2exp")
+# library("latex2exp")
+# library(ggplot2)
+list(
+  data.frame(x = quantiles[!between(quantiles, q1, q2)], name = "Outside 95%"),
+  data.frame(x = quantiles[between(quantiles, q1, q2)], name = "95% CI")
+) %>%
+  bind_rows() %>%
+  ggplot(mapping = aes(x = x, fill = name)) +
+  geom_histogram(binwidth = 0.08) +
+  ggtitle(ci_name) +
+  xlab(TeX("$q_{.95}$ Confidence Interval"))
+```
+
+```{r}
+mu <- 1
+n <- 50
+dt <- 0.1
+x0 <- 50
+sigma <- 0.2
+barrier <- 45
+
+t <- 1:50
+
+s <- x0 * cumprod(exp((mu - sigma ^ 2 / 2) * dt + sigma * rnorm(50, 0, sqrt(dt))))
+```
+
+```{r}
+x <- runif(n = 25000, min = -1, max = 1)
+y <- runif(n = 25000, min = -1, max = 1)
+
+is_in <- sqrt(x^2 + y^2) <= 1 &
+         (
+           (x + y >= -1 &
+           2 * x + y <= 1 &
+           x / 3 - y >= -5/6
+          ) | (x/3 - y <= -5/6 & 2 * x + y >= 1) )
+
+mean(is_in)
+
+data.frame(x = x, y = y, name = ifelse(is_in, "in", "out")) %>%
+  ggplot(mapping = aes(x = x, y = y, color = name)) +
+  geom_point()
+
+
+
+```
+
+
+```{r bootstrap-mean-example}
+x <- rnorm(n = 222, 13, 4)
+
+mean(x)
+
+sim <- replicate(90*10^4, mean(sample(x, replace = TRUE)))
+q1 <- quantile(sim, 0.025)
+q2 <- quantile(sim, 0.975)
+
+mean(sim)
+
+data.frame(x = sim, details = ifelse(between(sim, q1, q2), "Inside 95% CI", "Outside 95% CI")) %>%
+  ggplot(mapping = aes(x = x, fill = details)) +
+  geom_histogram(binwidth = 0.01)
+```
+
+### Bootstrap hypothesis testing
+
+```{r}
+# H_0 waight gain is the same on both diets
+# test statistics |samplemeanx - samplemeany|, |samplemedianx - samplemediany|
+x <- rnorm(50, mean = 12, sd = 4)
+y <- rnorm(50, mean = 16, sd = 4)
+
+
+t1 <- abs(mean(x) - mean(y))
+t2 <- abs(median(x) - median(y))
+
+sim <- replicate(
+  100000,
+  abs(
+    mean(sample(c(x, y), size = 50, replace = TRUE)) -
+    mean(sample(c(x, y), size = 50, replace = TRUE))
+  )
+)
+
+pvalue <- mean(sim >= t1)
+pvalue
+
+# estimate of the sample difference
+sim2 <- 100000 %>%
+  replicate(abs(mean(sample(x, replace = TRUE)) - mean(sample(y, replace = TRUE))))
+
+q1 <- quantile(sim2, 0.025)
+q2 <- quantile(sim2, 0.975)
+
+data.frame(x = sim2) %>%
+  ggplot(mapping = aes(x = x), description = ifelse(between(sim2, q1, q2), "in", "out"))) +
+  geom_histogram()
+```
+```{r}
+
+
+
+```
+
