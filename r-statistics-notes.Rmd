@@ -1144,7 +1144,7 @@ chisq.test(observed)
 
 Нека разгледаме данни от последния пример
 
-```{r}
+```{r echo=FALSE}
 set.seed(12)
 x <- runif(100, min = 1, max = 300)
 error <- rnorm(100, 0, 40)
@@ -1190,8 +1190,10 @@ $$
 и математическото очакването за $Y$ ще е права линия около която наблюденията варират.
 
 ```{r echo=FALSE}
-ads_plot +
+ads_plot_with_ey <- ads_plot +
   geom_line(mapping = aes(x = tv, y = sales - error), color = "#bf8d02")
+
+ads_plot_with_ey
 ```
 
 Един начин по който бихме могли да оценим математическото очакване на $Y$ е [метода на най-малките квадрати](https://en.wikipedia.org/wiki/Least_squares).
@@ -1205,7 +1207,7 @@ $$
 $$
 
 Тоест, избираме коефициенти $\beta_0$ и $\beta_1$, такива че нашата линия $f(x) := \beta_0 + \beta_1x$ максимално да приближава наблюденията $(y_1, ..., y_n)$ които имаме. Функцията която минимизираме по-горе, наричаме **сума на квадратите на грешките** и най-често обозначаваме с 
-[RSS](https://en.wikipedia.org/wiki/Residual_sum_of_squares)),
+[RSS](https://en.wikipedia.org/wiki/Residual_sum_of_squares),
 
 която като функция на $\beta_0$ и $\beta_1$ би изглеждала така
 
@@ -1266,8 +1268,19 @@ $\overrightarrow{y}$ (центрирани и нормирани спрямо $\
 или колко $\overrightarrow{y}$ се променя спрямо $\overrightarrow{x}$ (скаларно произведение).
 
 По този начин, получената оценка за $EY$
-$$\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x$$.
+$$\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x$$
 
+е неизместена оценка.
+
+
+```{r}
+ads_plot_with_ey +
+  geom_smooth(method = lm, se = FALSE, color = "#a31898", alpha = 0.5, size = 0.5) +
+  ggtitle("Прогноза (виолетово) и Очакване (жълто) за продажбите")
+```
+
+
+Нека разгледаме свойствата на оценките $\hat{\beta_0}$ и $\hat{\beta_1}$.
 
 $$
 Е[\hat{\beta}_1] = E[\frac{\sum_{i=1}^n(x_i-\bar{x})(Y_i-\bar{Y})}{\sum_{i=1}^n(x_i-\bar{x})^2}] =\\
@@ -1281,8 +1294,7 @@ $$
 и така, оценката $\hat{\beta_1}$ за $\beta_1$ е неизместена оценка.
 
 $$
-Е[\hat{\beta_0}]=E[\bar{y}-\hat{\beta_1}\bar{x}]=E[\beta_0+\beta_1\bar{x}+\bar{\epsilon}-\hat{\beta_1}\bar{x}]=\\
-=\beta_0
+Е[\hat{\beta_0}]=E[\bar{y}-\hat{\beta_1}\bar{x}]=E[\beta_0+\beta_1\bar{x}+\bar{\epsilon}-\hat{\beta_1}\bar{x}]=\beta_0
 $$
 
 и следователно $\hat{\beta}_0$ също е неизместена оценка за $\beta_0$.
