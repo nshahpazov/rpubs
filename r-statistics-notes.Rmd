@@ -245,7 +245,7 @@ pvalue
 Областта $\mathcal{C}$ в която избираме да отхвърлим нулевата хипотеза, когато вектора на наблюденията $(x_1, ..., x_n)$ попадне в нея, наричаме **критична област**. В нашия случай, критичната област е 
 
 $$
-\mathcal{C}:= \{(x_1, ..., x_n): \frac{\bar{x}-\mu_{H}}{\sigma/\sqrt{n}} < q^{\mathcal{N}(0,1)}_{0.025}\}
+\mathcal{C}:= \{(x_1, ..., x_n): \frac{\bar{x}-\mu_{H}}{\sigma/\sqrt{n}} < q^{\mathcal{N}(0,1)}_{\alpha}\}
 $$
 
 Ако не успеем да отхвърлим хипотезата $H_0$, а тя се окаже грешна, правиме
@@ -1087,7 +1087,7 @@ ggplot(mapping = aes(x = rbinom(600, size = 8, prob = 1 / 2), y = rpois(600, 2.3
   theme_minimal()
 ```
 
-```{r chi-square-test-for-independence}
+```{r chi-square-test-for-independence, attr.source='.numberLines'}
 # генериране на две независими случайни величини
 x <- rbinom(600, size = 8, prob = 1 / 2)
 y <- rpois(600, 2.3)
@@ -1132,3 +1132,243 @@ chisq.test(observed)
 подаде таблица.
 
 ---
+
+## Проста Линейна Регресия
+
+Често се налага да обясним една непрекъсната променлива чрез друга, примерно 
+
+* заплата на спрямо години в образование
+* скорост на кола на базата на конски сили
+* резултат от изпит спрямо часовете вкарани в учене
+* продажби на продукт спрямо приходите вложени в различни реклами
+
+Нека разгледаме данни от последния пример
+
+```{r}
+set.seed(12)
+x <- runif(100, min = 1, max = 300)
+error <- rnorm(100, 0, 40)
+beta0 <- 120
+beta1 <- 1
+
+y <- beta0 + beta1 * x + error
+
+advertisement <- data.frame(tv = x, sales = y)
+
+ads_plot <- advertisement %>%
+  ggplot(mapping = aes(x = tv, y = sales)) +
+  geom_point(color = "#336699", alpha = 0.4) +
+  xlab("Бюджет вложен в TV Реклами") +
+  ylab("Печалби") +
+  ggtitle("Приходи спрямо бюджет вложен в TV реклами") +
+  theme_minimal()
+ads_plot
+```
+
+Виждаме, че има добра линейна връзка между печалбите и приходите вложени в ТВ реклами.
+Данните като цяло се движат около права линия около която има лек случаен шум.
+Ако моделираме печалбата като случайна величини $Y$ и $X$, бихме могли да кажем, че
+$$
+Y = \beta_0 + \beta_1X + \epsilon,
+$$
+където $\epsilon$ е нашия случаен елемент, който за леснота можем да считаме като 
+независими наблюдения oт нормално разпределена случайна величина, тоест 
+
+$$
+\epsilon_1, ..., \epsilon_n \sim^d \epsilon \sim \mathcal{N}(0, \sigma^2)
+$$
+
+За леснота, можем да считаме, че $Х$ са наблюдавани константи и техните вероятностни свойства не ни интересуват.
+
+По този начин, 
+
+$$
+E[Y] = E(\beta_0 + \beta_1x + \epsilon) = \beta_0 + \beta_1x\\
+Var[Y] = Var(\beta_0 + \beta_1x + \epsilon) = \sigma^2\\
+Y \sim \mathcal{N}(\beta_0+\beta_1x, \sigma^2)
+$$
+и математическото очакването за $Y$ ще е права линия около която наблюденията варират.
+
+```{r echo=FALSE}
+ads_plot +
+  geom_line(mapping = aes(x = tv, y = sales - error), color = "#bf8d02")
+```
+
+Един начин по който бихме могли да оценим математическото очакване на $Y$ е [метода на най-малките квадрати](https://en.wikipedia.org/wiki/Least_squares).
+
+Понеже знаем, че върху математическото очакване може да се гледа като на център на тежестта, естествен начин за неговата оценка е да изберем минималното разстояние между наблюденията $\overrightarrow{y} = (y_1, ..., y_n)'$ и линията $\beta_0 + \beta_1x$, тоест за $\beta_0$ и $\beta_1$ да изберем такива коефициенти, че
+
+$$
+(\hat{\beta_0}, \hat{\beta_1}) := \underset{\beta_0, \beta_1}{argmin}\text{ }\rho(\overrightarrow{y}, \beta_0 + \beta_1 \overrightarrow{x})^2=\\
+=\underset{\beta_0, \beta_1}{argmin}\text{ }\left\lVert \overrightarrow{y}-\beta_0 - \beta_1 \overrightarrow{x} \right\rVert^2_2=\\
+=\underset{\beta_0, \beta_1}{argmin}\text{ }\sum_{i=1}^n(y_i-\beta_0-\beta_1 x_i)^2
+$$
+
+Тоест, избираме коефициенти $\beta_0$ и $\beta_1$, такива че нашата линия $f(x) := \beta_0 + \beta_1x$ максимално да приближава наблюденията $(y_1, ..., y_n)$ които имаме. Функцията която минимизираме по-горе, наричаме **сума на квадратите на грешките** и най-често обозначаваме с 
+[RSS](https://en.wikipedia.org/wiki/Residual_sum_of_squares)),
+
+която като функция на $\beta_0$ и $\beta_1$ би изглеждала така
+
+```{r echo=FALSE}
+rss <- function(b0, b1) sum((scale(advertisement$sales) - (b0 + b1 * scale(advertisement$tv)))^2)
+
+b0 <- seq(-5, 5, length.out = 100)
+b1 <- seq(-5, 5, length.out = 100)
+z <- outer(b0, b1, function(x, y) mapply(rss, x, y))
+
+# contour(b0, b1, z)
+
+fig <- plot_ly(
+  type = 'surface',
+  contours = list(
+    z = list(
+      show = TRUE,
+      usecolormap = TRUE,
+      highlightcolor = "#ff0000",
+      project = list(z = TRUE)
+    )
+  ),
+  x = ~b0,
+  y = ~b1,
+  z = ~z
+)
+
+fig
+```
+
+Един начин по който можем да намерим минимума на горната функция е като намерим първите частни производни и ги положим на 0, т.е.
+
+$$
+\frac{\partial{(RSS)}}{\beta_0}=0\\
+\frac{\partial{(RSS)}}{\beta_1}=0
+$$
+
+и да намерим инфлексната точка на функцията. Решавайки за $\beta_0$ и $\beta_1$ получаваме
+
+$$
+\hat{\beta_0} = \bar{y}-\beta_1\bar{x}\\
+$$
+
+и съответно
+
+$$
+\hat{\beta_1} = \frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{\sum_{i=1}^n(x_i-\bar{x})^2}\\
+$$
+
+Забелязваме, че оценката на $\beta_1$ може да се представи и така
+
+$$
+\hat{\beta_1} = \langle\frac{(\overrightarrow{x}-\bar{x})}{||\overrightarrow{x}-\bar{x}||_2},\frac{(\overrightarrow{y}-\bar{y})}{||\overrightarrow{x}-\bar{x}||_2} \rangle
+$$
+
+Тоест, оценката за $\beta_1$ ни дава колко наблюдаваните вектори $\overrightarrow{x}$ и 
+$\overrightarrow{y}$ (центрирани и нормирани спрямо $\overrightarrow{x}$) са в една посока, 
+или колко $\overrightarrow{y}$ се променя спрямо $\overrightarrow{x}$ (скаларно произведение).
+
+По този начин, получената оценка за $EY$
+$$\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x$$.
+
+
+$$
+Е[\hat{\beta}_1] = E[\frac{\sum_{i=1}^n(x_i-\bar{x})(Y_i-\bar{Y})}{\sum_{i=1}^n(x_i-\bar{x})^2}] =\\
+=\frac{\sum_{i=1}^n(x_i-\bar{x})E[Y_i]}{\sum_{i=1}^n(x_i-\bar{x})^2}=\\
+=\frac{\sum_{i=1}^n(x_i-\bar{x})(\beta_0 + \beta_1x_i)}{\sum_{i=1}^n(x_i-\bar{x})^2}=\\
+=\frac{\sum_{i=1}^n(x_i-\bar{x})\beta_0}{\sum_{i=1}^n(x_i-\bar{x})^2}+\frac{\beta_1\sum_{i=1}^n(x_i-\bar{x})(x_i-\bar{x}+\bar{x})}{\sum_{i=1}^n(x_i-\bar{x})^2}=\\
+0+\frac{\beta_1\sum_{i=1}^n(x_i-\bar{x})^2}{\sum_{i=1}^n(x_i-\bar{x})^2}+0=\\
+=\beta_1
+$$
+
+и така, оценката $\hat{\beta_1}$ за $\beta_1$ е неизместена оценка.
+
+$$
+Е[\hat{\beta_0}]=E[\bar{y}-\hat{\beta_1}\bar{x}]=E[\beta_0+\beta_1\bar{x}+\bar{\epsilon}-\hat{\beta_1}\bar{x}]=\\
+=\beta_0
+$$
+
+и следователно $\hat{\beta}_0$ също е неизместена оценка за $\beta_0$.
+
+$$
+Var[\hat{\beta}_1] = Var[\frac{\sum_{i=1}^n(x_i-\bar{x})(Y_i-\bar{Y})}{\sum_{i=1}^n(x_i-\bar{x})^2}]=\\
+=\frac{\sum_{i=1}^n(x_i-\bar{x})^2\sigma^2}{[\sum_{i=1}^n(x_i-\bar{x})^2]^2}=\frac{\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}
+$$
+
+За дисперсията на $\hat{\beta}_0$ получаваме
+
+$$
+Var[\hat{\beta}_0]=Var[\bar{y}-\hat{\beta_1}\bar{x}]=\\
+=\frac{\sigma^2}{n}+\bar{x}^2Var[\hat{\beta_1}]+Cov[\bar{y}, \hat{\beta_1}]=\\
+=\frac{\sigma^2}{n}+\frac{\bar{x}\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}
+$$
+
+понеже $Cov[\bar{y}, \hat{\beta_1}] = 0$ (Проверете сами!)
+
+#### Оценка за $\sigma^2$
+
+Нека разгледаме минимизираната стойност на $RSS$ като случайна величина 
+
+$$
+\hat{RSS} := ||\overrightarrow{Y}- \overrightarrow{\hat{Y}}||_2^2 = \sum_{i=1}^n{(Y_i-\hat{Y}_i)^2}
+$$
+
+Тогава 
+
+$$
+\frac{\hat{RSS}}{\sigma^2} \sim \chi^2_{n-2}
+$$
+и ако вземем математическото очакване на $\hat{RSS}$
+
+$$
+E[\frac{\hat{RSS}}{\sigma^2}] = n-2 \implies E[\frac{\hat{RSS}}{n-2}] = \sigma^2
+$$
+
+Така получаваме [неизместена оценка](https://en.wikipedia.org/wiki/Bias_of_an_estimator) $\hat{\sigma}^2 := \frac{\hat{RSS}}{n-2}$ с дисперсия $2\sigma^4/(n-2)$.
+
+#### Интервали на достоверност в Проста Линейна Регресия
+
+Тъй като стойността на $\hat{y}_i$ във всяка точка $x_i$ e оценка за математическото очакване в тази 
+точка, бихме могли да изградим интервал на достоверност 
+
+```{r echo=FALSE}
+## Sample data
+dat <- advertisement
+
+dat <- data.frame(x = advertisement$tv,
+                  y = advertisement$sales)
+
+## breaks: where you want to compute densities
+breaks <- seq(40, 160, len=4)
+dat$section <- cut(dat$x, breaks)
+
+## Get the residuals
+dat$res <- residuals(lm(y ~ x, data=dat))
+
+## Compute densities for each section, and flip the axes, and add means of sections
+## Note: the densities need to be scaled in relation to the section size (2000 here)
+dens <- do.call(rbind, lapply(split(dat, dat$section), function(x) {
+  d <- density(x$res, n = 50)
+  res <- data.frame(x = max(x$x)- d$y*2000, y = d$x + mean(x$y))
+  res <- res[order(res$y), ]
+  ## Get some data for normal lines as well
+  xs <- seq(min(x$res), max(x$res), len = 50)
+  res <- rbind(res, data.frame(y = xs + mean(x$y),
+                               x = max(x$x) - 2000 * dnorm(xs, 0, sd(x$res))))
+  res$type <- rep(c("empirical", "normal"), each = 50)
+  res
+}))
+
+dens$section <- rep(levels(dat$section), each=100)
+
+## Plot both empirical and theoretical
+ggplot(dat, aes(x, y)) +
+  geom_point(color = "#336699", alpha = 0.6) +
+  geom_smooth(method = "lm", fill = NA, lwd = 1, color = "#bf8d02") +
+  geom_path(data = dens[dens$type == "normal",], aes(x, y, group = section), color = "#336699", alpha = 0.6, lwd = 1.1) +
+  theme_bw() +
+  geom_vline(xintercept = breaks, lty = 2) +
+  xlab("Бюджет вложен в TV Реклами") +
+  ylab("Печалби") +
+  ggtitle("Прогноза спрямо реклами и доверителни интервали") +
+  theme_minimal()
+```
+
+
