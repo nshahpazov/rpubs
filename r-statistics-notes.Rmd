@@ -1195,16 +1195,17 @@ $$
 ads_plot_with_ey <- data.frame(sales = y + rnorm(100, sd = 40), tv = x, sample = "Извадка 2") %>%
   bind_rows(advertisement) %>%
   bind_rows() %>%
-  ggplot(mapping = aes(x = tv, y = sales, color = sample)) +
-  geom_point(alpha = 0.6) +
+  ggplot(mapping = aes(x = tv, y = sales)) +
   geom_line(
     data = advertisement, mapping = aes(x = tv, y = sales - error), color = "gray", size = 0.6
   ) +
   xlab("Бюджет вложен в TV Реклами") +
   ylab("Печалби") +
-  ggtitle("Истинско Очакване и две различни извадки от грешки") +
   theme_minimal()
-ads_plot_with_ey
+
+ads_plot_with_ey +
+  geom_point(alpha = 0.6, mapping = aes(color = sample)) +
+  ggtitle("Истинско Очакване и две различни извадки от грешки")
 ```
 
 Един начин по който бихме могли да оценим математическото очакване на $Y$ е [метода на най-малките квадрати](https://en.wikipedia.org/wiki/Least_squares).
@@ -1285,8 +1286,16 @@ $$\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x$$
 
 
 ```{r echo=FALSE}
-ads_plot_with_ey +
-  geom_smooth(method = lm, se = FALSE, color = "#a31898", alpha = 0.5, size = 0.5) +
+advertisement %>%
+  ggplot(mapping = aes(x = tv, y = sales)) +
+  geom_point(alpha = 0.6, color = "#336699") +
+  geom_line(
+    data = advertisement, mapping = aes(x = tv, y = sales - error), color = "gray", size = 0.6
+  ) +
+  xlab("Бюджет вложен в TV Реклами") +
+  ylab("Печалби") +
+  theme_minimal() +
+  geom_smooth(method = lm, se = FALSE, color = "#a31898", alpha = 0.2, size = 0.4) +
   ggtitle("Напаснат модел (виолетово) и истинско очакване (сиво) за продажбите")
 ```
 
