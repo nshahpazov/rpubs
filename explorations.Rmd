@@ -152,8 +152,8 @@ q1 <- quantile(sim2, 0.025)
 q2 <- quantile(sim2, 0.975)
 
 data.frame(x = sim2) %>%
-  ggplot(mapping = aes(x = x), description = ifelse(between(sim2, q1, q2), "in", "out"))) +
-  geom_histogram()
+  ggplot(mapping = aes(x = x, fill = ifelse(between(sim2, q1, q2), "in", "out"))) +
+  geom_histogram(binwidth = 0.02)
 ```
 ```{r}
 

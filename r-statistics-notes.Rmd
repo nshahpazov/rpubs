@@ -73,7 +73,7 @@ c(10, 100, 1000) %>%
 
 Още една визуализация
 
-```{r simulation-of-mean-2, echo=TRUE}
+```{r simulation-of-mean-2, echo=FALSE}
 # library("ggridges")
 
 c(10, 50, 100, 250, 500, 750, 1000, 1500, 2000, 5000) %>%
@@ -1093,7 +1093,7 @@ x <- rbinom(600, size = 8, prob = 1 / 2)
 y <- rpois(600, 2.3)
 
 # Вкарване на зависимост
-y[510:600] <- y[510:600] + x[510:600]
+y[400:600] <- y[400:600] + x[400:600]
 
 # таблица брояща наблюдавани комбинации от вида (X, Y)
 observed <- table(x, y)
@@ -1151,9 +1151,9 @@ error <- rnorm(100, 0, 40)
 beta0 <- 120
 beta1 <- 1
 
-y <- beta0 + beta1 * x + error
+y <- beta0 + beta1 * x
 
-advertisement <- data.frame(tv = x, sales = y)
+advertisement <- data.frame(tv = x, sales = y + error, sample = "Извадка 1")
 
 ads_plot <- advertisement %>%
   ggplot(mapping = aes(x = tv, y = sales)) +
@@ -1168,6 +1168,7 @@ ads_plot
 Виждаме, че има добра линейна връзка между печалбите и приходите вложени в ТВ реклами.
 Данните като цяло се движат около права линия около която има лек случаен шум.
 Ако моделираме печалбата като случайна величини $Y$ и $X$, бихме могли да кажем, че
+
 $$
 Y = \beta_0 + \beta_1X + \epsilon,
 $$
@@ -1187,12 +1188,22 @@ E[Y] = E(\beta_0 + \beta_1x + \epsilon) = \beta_0 + \beta_1x\\
 Var[Y] = Var(\beta_0 + \beta_1x + \epsilon) = \sigma^2\\
 Y \sim \mathcal{N}(\beta_0+\beta_1x, \sigma^2)
 $$
+
 и математическото очакването за $Y$ ще е права линия около която наблюденията варират.
 
 ```{r echo=FALSE}
-ads_plot_with_ey <- ads_plot +
-  geom_line(mapping = aes(x = tv, y = sales - error), color = "#bf8d02")
-
+ads_plot_with_ey <- data.frame(sales = y + rnorm(100, sd = 40), tv = x, sample = "Извадка 2") %>%
+  bind_rows(advertisement) %>%
+  bind_rows() %>%
+  ggplot(mapping = aes(x = tv, y = sales, color = sample)) +
+  geom_point(alpha = 0.6) +
+  geom_line(
+    data = advertisement, mapping = aes(x = tv, y = sales - error), color = "gray", size = 0.6
+  ) +
+  xlab("Бюджет вложен в TV Реклами") +
+  ylab("Печалби") +
+  ggtitle("Истинско Очакване и две различни извадки от грешки") +
+  theme_minimal()
 ads_plot_with_ey
 ```
 
@@ -1212,6 +1223,8 @@ $$
 която като функция на $\beta_0$ и $\beta_1$ би изглеждала така
 
 ```{r echo=FALSE}
+library("plotly")
+
 rss <- function(b0, b1) sum((scale(advertisement$sales) - (b0 + b1 * scale(advertisement$tv)))^2)
 
 b0 <- seq(-5, 5, length.out = 100)
@@ -1267,18 +1280,17 @@ $$
 $\overrightarrow{y}$ (центрирани и нормирани спрямо $\overrightarrow{x}$) са в една посока, 
 или колко $\overrightarrow{y}$ се променя спрямо $\overrightarrow{x}$ (скаларно произведение).
 
-По този начин, получената оценка за $EY$
+По този начин, получената оценка за $EY$ e
 $$\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x$$
 
-е неизместена оценка.
 
-
-```{r}
+```{r echo=FALSE}
 ads_plot_with_ey +
   geom_smooth(method = lm, se = FALSE, color = "#a31898", alpha = 0.5, size = 0.5) +
-  ggtitle("Прогноза (виолетово) и Очакване (жълто) за продажбите")
+  ggtitle("Напаснат модел (виолетово) и истинско очакване (сиво) за продажбите")
 ```
 
+### Свойства на $\hat{\beta}_0$ и $\hat{\beta}_1$
 
 Нека разгледаме свойствата на оценките $\hat{\beta_0}$ и $\hat{\beta_1}$.
 
@@ -1312,7 +1324,57 @@ Var[\hat{\beta}_0]=Var[\bar{y}-\hat{\beta_1}\bar{x}]=\\
 =\frac{\sigma^2}{n}+\frac{\bar{x}\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}
 $$
 
-понеже $Cov[\bar{y}, \hat{\beta_1}] = 0$ (Проверете сами!)
+понеже $Cov[\bar{y}, \hat{\beta_1}] = 0$ (Проверете сами!).
+
+За ковариацията между $\hat{\beta}_0$ и $\hat{\beta}_1$ получаваме
+
+$$
+Cov(\hat{\beta}_0, \hat{\beta}_1) = E[(\bar{y}-\hat{\beta}_1\bar{x})\hat{\beta}_1] - \beta_0\beta_1=
+E[\bar{y}]E[\hat{\beta}_1]-\bar{x}E[\hat{\beta}_1^2]=\\
+=(\beta_0+\beta_1\bar{x})\beta_1-\bar{x}Var[\hat{\beta}_1]-\bar{x}\beta_1^2-\beta_0\beta_1=\\
+=-\bar{x}Var[\hat{\beta}_1]=-\frac{\bar{x}\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}
+$$
+
+
+```{r echo=FALSE}
+various_xs <- list(
+  "10" = runif(10, min = 1, max = 300),
+  "50" = runif(50, min = 1, max = 300),
+  "100" = runif(100, min = 1, max = 300),
+  "250" = runif(250, min = 1, max = 300),
+  "500" = runif(500, min = 1, max = 300)
+)
+
+sim_estimators <- function(n = 100, x = x, scaled = FALSE, sigma = 40) {
+  error_sim <- rnorm(n, 0, 40)
+
+  y_sim <- (120 * unlist(x)) + error_sim
+
+  model <- if (scaled) lm(scale(y_sim) ~ scale(x)) else lm(y_sim ~ x)
+  coefs <- unname(model$coefficients)
+
+  data.frame(beta0 = coefs[1], beta1 = coefs[2], n = n)
+}
+
+estimates <- map(c(10, 100, 250, 500), function(n) {
+  bind_rows(map(1:1000, ~sim_estimators(n, unlist(various_xs[as.character(n)]), scaled = FALSE)))
+}) %>%
+bind_rows()
+
+estimates %>%
+  ggplot(aes(x = beta0, y = beta1)) +
+  geom_density_2d_filled(contour_var = "ndensity") +
+  ggtitle("Плътностно разпределение на вектора оценките на β0 и β1") +
+  xlab("Оценка на β0") +
+  ylab("Оценка на β1") +
+  facet_wrap(~n, scales = "free") # +
+  # theme(
+  #   axis.title.x = element_blank(),
+  #   axis.text.x = element_blank(),
+  #   axis.ticks.x = element_blank()
+  # )
+```
+
 
 #### Оценка за $\sigma^2$
 
@@ -1374,7 +1436,13 @@ dens$section <- rep(levels(dat$section), each=100)
 ggplot(dat, aes(x, y)) +
   geom_point(color = "#336699", alpha = 0.6) +
   geom_smooth(method = "lm", fill = NA, lwd = 1, color = "#bf8d02") +
-  geom_path(data = dens[dens$type == "normal",], aes(x, y, group = section), color = "#336699", alpha = 0.6, lwd = 1.1) +
+  geom_path(
+    data = dens[dens$type == "normal",],
+    aes(x, y, group = section),
+    color = "#336699",
+    alpha = 0.6,
+    lwd = 1.1
+  ) +
   theme_bw() +
   geom_vline(xintercept = breaks, lty = 2) +
   xlab("Бюджет вложен в TV Реклами") +
@@ -1382,5 +1450,4 @@ ggplot(dat, aes(x, y)) +
   ggtitle("Прогноза спрямо реклами и доверителни интервали") +
   theme_minimal()
 ```
-
 
