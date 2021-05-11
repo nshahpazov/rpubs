@@ -1194,7 +1194,6 @@ $$
 ```{r echo=FALSE}
 ads_plot_with_ey <- data.frame(sales = y + rnorm(100, sd = 40), tv = x, sample = "Извадка 2") %>%
   bind_rows(advertisement) %>%
-  bind_rows() %>%
   ggplot(mapping = aes(x = tv, y = sales)) +
   geom_line(
     data = advertisement, mapping = aes(x = tv, y = sales - error), color = "gray", size = 0.6
@@ -1210,7 +1209,7 @@ ads_plot_with_ey +
 
 Един начин по който бихме могли да оценим математическото очакване на $Y$ е [метода на най-малките квадрати](https://en.wikipedia.org/wiki/Least_squares).
 
-Понеже знаем, че върху математическото очакване може да се гледа като на център на тежестта, естествен начин за неговата оценка е да изберем минималното разстояние между наблюденията $\overrightarrow{y} = (y_1, ..., y_n)'$ и линията $\beta_0 + \beta_1x$, тоест за $\beta_0$ и $\beta_1$ да изберем такива коефициенти, че
+Понеже знаем, че върху математическото очакване може да се гледа като на център на тежестта, естествен начин за неговата оценка е да изберем минималното разстояние между вектора на наблюденията $\overrightarrow{y} = (y_1, ..., y_n)'$ и вектора-линия $\beta_0 + \beta_1\overrightarrow{x}=(\beta_0 + \beta_1x_1, ..., \beta_0 + \beta_1x_n)$, тоест за $\beta_0$ и $\beta_1$ да изберем такива коефициенти, че
 
 $$
 (\hat{\beta_0}, \hat{\beta_1}) := \underset{\beta_0, \beta_1}{argmin}\text{ }\rho(\overrightarrow{y}, \beta_0 + \beta_1 \overrightarrow{x})^2=\\
@@ -1330,7 +1329,7 @@ $$
 $$
 Var[\hat{\beta}_0]=Var[\bar{y}-\hat{\beta_1}\bar{x}]=\\
 =\frac{\sigma^2}{n}+\bar{x}^2Var[\hat{\beta_1}]+Cov[\bar{y}, \hat{\beta_1}]=\\
-=\frac{\sigma^2}{n}+\frac{\bar{x}\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}
+=\frac{\sigma^2}{n}+\frac{\bar{x}^2\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}
 $$
 
 понеже $Cov[\bar{y}, \hat{\beta_1}] = 0$ (Проверете сами!).
@@ -1408,8 +1407,92 @@ $$
 
 #### Интервали на достоверност в Проста Линейна Регресия
 
-Тъй като стойността на $\hat{y}_i$ във всяка точка $x_i$ e оценка за математическото очакване в тази 
-точка, бихме могли да изградим интервал на достоверност 
+Тъй като $\hat{\beta}_0 \sim \mathcal{N}(\beta_0, \frac{\sigma^2}{n}+\frac{\bar{x}^2\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2})$ и следователно
+
+$$
+Z_0 := \frac{\hat{\beta}_0 - \beta_0}{\sqrt{Var(\hat{\beta}_0)}}:= \frac{\hat{\beta}_0 - \beta_0}{\sqrt{\frac{\sigma^2}{n}+\frac{\bar{x}^2\sigma^2}{\sum_{i=1}^n(x_i-\bar{x})^2}}}
+\sim \mathcal{N}(0, 1)
+$$
+
+и 
+
+$$
+T_0 := \frac{\hat{\beta_0}-\beta_0}{\sqrt{\hat{Var}(\hat{\beta}_0)}} = \frac{\hat{\beta}_0 - \beta_0}{\sqrt{\frac{\hat{\sigma}^2}{n}+\frac{\bar{x}^2\hat{\sigma}^2}{\sum_{i=1}^n(x_i-\bar{x})^2}}}
+\sim \mathcal{T}(n - 2)
+$$
+
+то можем да изградим $\gamma$-доверителни интервали, както и да тестваме различни хипотези на базата
+на горните статистики.
+
+Аналогични разсъждения са валидни и за $\beta_1$, тъй като
+
+$$
+Z_1 := \frac{\hat{\beta}_1-\beta_1}{\sqrt{Var(\hat{\beta_1})}}=
+\frac{(\hat{\beta}_1-\beta_1)\sqrt{\sum_{i=1}^n(x_i-\bar{x})^2}}{\sigma}
+\sim \mathcal{N}(0, 1)
+$$
+и
+
+$$
+T_1 := \frac{\hat{\beta}_1-\beta_1}{\sqrt{\hat{Var}(\hat{\beta}_1)}} = 
+\frac{(\hat{\beta}_1-\beta_1)\sqrt{\sum_{i=1}^n(x_i-\bar{x})^2}}{\hat{\sigma}}
+\sim \mathcal{T}(n - 2)
+$$
+
+#### Прогнозиране
+
+Основен въпрос, след като имаме изграден модел, е това да направим прогноза върху ненаблюдавана досега
+точка $x_0$. В нашия случай, колко очакваме да спечелим, ако инвестираме 144лв в реклама?
+
+```{r echo=FALSE}
+advertisement %>%
+  mutate(sample = "Наблюдавани данни") %>%
+  add_row(tv = 144, sales = 266, sample = "Ненаблюдавано х") %>%
+  ggplot(mapping = aes(x = tv, y = sales, color = sample)) +
+  geom_smooth(method = "lm", fill = NA, lwd = 1, color = "#a8d936") +
+  geom_point() +
+  ggtitle("Ненаблюдавани досега данни") +
+  xlab("Инвестиции в TV реклами") +
+  ylab("Продажби")
+```
+
+Използвайки досега напаснатия модел, оценката за очакването на y върху определена точка $x_0$ е
+
+$$
+\hat{y}_{x_0} := \hat{E}[Y|X = x_0] := \hat{\beta}_0 + \hat{\beta}_1 x_0
+$$
+Като точкова оценка, то притежава свойството неизместеност, защото
+
+$$
+Е[\hat{y}_{x_0} - y_{x_0}] = E[\hat{\beta}_0 + \hat{\beta}_1 x_0 - \beta_0 - \beta_1x_0] =\\
+= E[\hat{\beta}_0] + E[\hat{\beta}_1 x_0] - \beta_0 - \beta_1x_0 =\\
+= \beta_0 + \beta_1x_0 - \beta_0 - \beta_1x_0 = 0
+$$
+Дисперсията на тази оценка е сумата от дисперсиите на оценките на коефициентите
+
+$$
+Var[\hat{y}_{x_0}] = Var[\hat{\beta}_0 + \hat{\beta}_1 x_0] = \\
+= Var[\hat{\beta}_0] + Var[\hat{\beta}_1 x_0] + 2Cov[\hat{\beta}_0, \hat{\beta}_1 x_0] =\\
+=\frac{\sigma^2}{n}+\frac{\bar{x}^2\sigma^2}{S_{xx}} + \frac{x_0\sigma^2}{S_{xx}} - 
+2\frac{x_0\bar{x}\sigma^2}{S_{xx}} = \\
+= \sigma^2(\frac{1}{n} + \frac{(\bar{x}-x_0)^2}{S_{xx}})
+$$
+
+където, за леснота сме положили $S_{xx} := \sum_{i=1}^n{(x_i-\bar{x})^2}$.
+
+Ако правим оценка за дисперсията на $\hat{y}_{x_0}$, необходимо е в горната формула просто да 
+заместим дисперсията $\sigma^2$ с оценката за дисперсията $\hat{\sigma}^2$.
+
+$$
+\hat{Var}[\hat{y}_{x_0}] = \hat{\sigma}^2(\frac{1}{n} + \frac{(\bar{x}-x_0)^2}{S_{xx}})
+$$
+
+Oсвен точкова оценка за очакваната стойност в $x_0$, можем да изградим и интервална такава посредстом
+следната $T_{x_0}$-статистика
+
+$$
+Т_{x_0} := \frac{\hat{y}_{x_0} - E[y|x_0]}{\sqrt{\hat{Var}[\hat{y}_{x_0}]}} \sim \mathcal{T}(n - 2)
+$$
 
 ```{r echo=FALSE}
 ## Sample data
@@ -1458,5 +1541,29 @@ ggplot(dat, aes(x, y)) +
   ylab("Печалби") +
   ggtitle("Прогноза спрямо реклами и доверителни интервали") +
   theme_minimal()
+```
+
+В **R** горният модел се напасва по-следния начин
+
+```{r}
+ads_lm_model <- lm(sales ~ tv, data = advertisement)
+ads_lm_model
+```
+
+По-подробна информация можем да изведем със **summary**
+
+```{r}
+summary(ads_lm_model)
+```
+
+Ако искаме да изградим прогнози за определени стойности на TV реклама (х)
+
+```{r}
+predict.lm(
+  ads_lm_model,
+  data.frame(tv = c(300, 400, 500)),
+  interval = "prediction",
+  level = 0.95
+)
 ```
 
