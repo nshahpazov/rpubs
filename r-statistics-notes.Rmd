@@ -1608,7 +1608,7 @@ $$
 Т_{x_0} := \frac{\hat{y}_{x_0} - E[y|x_0]}{\sqrt{\hat{Var}[\hat{y}_{x_0}]}} \sim \mathcal{T}(n - 2)
 $$
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 # Точка която да прогнозираме
 x0 <- 300
 
@@ -1622,7 +1622,7 @@ y0_sigma_sq_estimate <- var_estimate * ((1 / n) + ((x0 - mean(x))^2 / Sxx))
 y0_sigma_estimate <- sqrt(y0_sigma_sq_estimate)
 
 # смятане на квантил от Т-разпределение с цел да сметнем доверителен интервал
-q <- pt(0.975, df = n - 2)
+q <- qt(0.975, df = n - 2)
 
 # оценка и доверителен интервал
 c(
@@ -1632,18 +1632,14 @@ c(
 )
 ```
 
-В **R** това може да стане така
+Което може да стане накратко така
 
 ```{r}
-p <- lm(sales ~ tv, advertisement) %>%
-  predict(data.frame(tv = c(300)), se.fit = TRUE, interval = "confidence", level = 0.95)
-
 predict.lm(
   lm(sales ~ tv, advertisement),
   data.frame(tv = c(300)), #, 400, 500)),
   interval = "confidence",
-  level = 0.95,
-  type = "response"
+  level = 0.95
 )
 ```
 
