@@ -1134,7 +1134,9 @@ chisq.test(observed)
 Функцията **chisq.test** автоматично разбира, че става въпрос за тест за независимост, когато ѝ се
 подаде таблица.
 
+
 ---
+
 
 ## Проста Линейна Регресия
 
@@ -1321,6 +1323,10 @@ advertisement %>%
   ggtitle("Напаснат модел (виолетово) и истинско очакване (сиво) за продажбите")
 ```
 
+
+---
+
+
 ### Свойства на $\hat{\beta}_0$ и $\hat{\beta}_1$
 
 Нека разгледаме свойствата на оценките $\hat{\beta_0}$ и $\hat{\beta_1}$.
@@ -1407,6 +1413,9 @@ estimates %>%
 ```
 
 
+---
+
+
 #### Оценка за $\sigma^2$
 
 Нека разгледаме минимизираната стойност на $RSS$ като случайна величина 
@@ -1465,12 +1474,24 @@ data.frame(
 
 ```
 
-Или написано по-кратко
+Или написано по-кратко чрез **lm** и **summary**
 
 ```{r}
 lm(sales ~ tv, advertisement) %>%
-  summary()
+  summary() %>%
+  {data.frame(
+    estimation = c(
+      "Оценка за стандартното отклонение",
+      "Оценка за стандартното отклонение на оценката за β0",
+      "Оценка за стандартното отклонение на оценката за β1"
+    ),
+    value = c(.$sigma, .$coefficients[1, 2], .$coefficients[2, 2])
+  )}
 ```
+
+
+---
+
 
 #### Интервали на достоверност в Проста Линейна Регресия
 
@@ -1526,10 +1547,16 @@ c(beta1_estimate - q * beta1_sd_est, beta1_estimate + q * beta1_sd_est)
 * Тестване на хипотеза че $\beta_0=0$
 
 ```{r}
+# Хипотетичен параметър под който т статистиката има Т-разпределение
 hypothetical_beta0 <- 0
 
+# наблюдавана т-статистика
 t0 <- (beta0_estimate - hypothetical_beta0) / beta0_sd_est
+
+# pvalue за т-статистиката
 pval0 <- 2 * min(pt(t0, df = n - 2, lower.tail = TRUE), pt(t0, df = n - 2, lower.tail = FALSE))
+
+# резултат
 c("t" = t0, "pvalue" = pval0)
 ```
 
@@ -1553,6 +1580,9 @@ lm(sales ~ tv, advertisement) %>%
 ```
 
 
+---
+
+
 #### Прогнозиране
 
 Основен въпрос, след като имаме изграден модел, е това да направим прогноза върху ненаблюдавана досега
@@ -1563,7 +1593,7 @@ advertisement %>%
   mutate(sample = "Наблюдавани данни") %>%
   add_row(tv = 144, sales = 0, sample = "Ненаблюдавано х") %>%
   ggplot(mapping = aes(x = tv, y = sales, color = sample)) +
-  geom_smooth(method = "lm", fill = NA, lwd = 1, color = "#a8d936") +
+  geom_smooth(method = "lm", fill = NA, lwd = 1, color = "gray") +
   geom_point() +
   ggtitle("Ненаблюдавани досега данни") +
   xlab("Инвестиции в TV реклами") +
@@ -1624,7 +1654,7 @@ y0_sigma_estimate <- sqrt(y0_sigma_sq_estimate)
 # смятане на квантил от Т-разпределение с цел да сметнем доверителен интервал
 q <- qt(0.975, df = n - 2)
 
-# оценка и доверителен интервал
+# оценка и 95% доверителен интервал
 c(
   "оценка" = fit_at_x0, 
   "долен край" = fit_at_x0 - q * y0_sigma_estimate,
@@ -1637,7 +1667,7 @@ c(
 ```{r}
 predict.lm(
   lm(sales ~ tv, advertisement),
-  data.frame(tv = c(300)), #, 400, 500)),
+  data.frame(tv = c(300)),
   interval = "confidence",
   level = 0.95
 )
