@@ -1071,7 +1071,7 @@ $X$ и $Y$ са независими, то $P(X = x_i, Y = y_j) = P(X = x_i)\cdo
 Тогава
 
 $$
-X^2 := \sum_{i=1}^r\sum_{j=1}^c \frac{(O_{i,j}-E_{i,j})^2}{E_{i,j}} \sim^d_{approx} \chi^2_{(r-1)(c-1)}
+X^2 := \sum_{i=1}^r\sum_{j=1}^c \frac{(O_{i,j}-E_{i,j})^2}{E_{i,j}}  \underset{appr}{\overset{distr}{\sim}} \chi^2_{(r-1)(c-1)}
 $$
 
 #### Пример
@@ -1214,7 +1214,7 @@ ads_plot_with_ey +
 
 Един начин по който бихме могли да оценим математическото очакване на $Y$ е [метода на най-малките квадрати](https://en.wikipedia.org/wiki/Least_squares).
 
-Понеже знаем, че върху математическото очакване може да се гледа като на център на тежестта, естествен начин за неговата оценка е да изберем минималното разстояние между вектора на наблюденията $\overrightarrow{y} = (y_1, ..., y_n)'$ и вектора-линия $\beta_0 + \beta_1\overrightarrow{x}=(\beta_0 + \beta_1x_1, ..., \beta_0 + \beta_1x_n)$, тоест за $\beta_0$ и $\beta_1$ да изберем такива коефициенти, че
+Понеже знаем, че върху математическото очакване може да се гледа като на център на тежестта, естествен начин за неговата оценка е да изберем минималното разстояние между вектора на наблюденията $\overrightarrow{y} = (y_1, ..., y_n)'$ и вектора-линия $\beta_0 + \beta_1\overrightarrow{x}=(\beta_0 + \beta_1x_1, ..., \beta_0 + \beta_1x_n)'$, тоест за $\beta_0$ и $\beta_1$ да изберем такива коефициенти, че
 
 $$
 (\hat{\beta_0}, \hat{\beta_1}) := \underset{\beta_0, \beta_1}{argmin}\text{ }\rho(\overrightarrow{y}, \beta_0 + \beta_1 \overrightarrow{x})^2=\\
@@ -1280,10 +1280,10 @@ $$
 x <- advertisement$tv
 y <- advertisement$sales
 
-# Оценка за коефициента бета 1
+# Оценка за коефициента β1
 beta1_estimate <- sum((x - mean(x)) * (y - mean(y))) / sum((x - mean(x))^2)
 
-# Оценка за коефициента бета 0
+# Оценка за коефициента β0
 beta0_estimate <- mean(y) - beta1_estimate * mean(x)
 c("β0 Оценка" = beta0_estimate, "β1 Оценка" = beta1_estimate)
 ```
@@ -1401,9 +1401,9 @@ bind_rows()
 estimates %>%
   ggplot(aes(x = beta0, y = beta1)) +
   geom_density_2d_filled(contour_var = "ndensity") +
-  ggtitle("Плътностно разпределение на вектора оценките на β0 и β1") +
-  xlab("Оценка на β0") +
-  ylab("Оценка на β1") +
+  ggtitle("Съвместно лътностно разпределение на оценките на β0 и β1") +
+  xlab("Оценка на β1") +
+  ylab("Оценка на β0") +
   facet_wrap(~n, scales = "free") # +
   # theme(
   #   axis.title.x = element_blank(),
@@ -1421,10 +1421,10 @@ estimates %>%
 Нека разгледаме минимизираната стойност на $RSS$ като случайна величина 
 
 $$
-\hat{RSS} := ||\overrightarrow{Y}- \overrightarrow{\hat{Y}}||_2^2 = \sum_{i=1}^n{(Y_i-\hat{Y}_i)^2}
+\hat{RSS} := \rho(\overrightarrow{Y},\overrightarrow{\hat{Y}})^2 = ||\overrightarrow{Y}- \overrightarrow{\hat{Y}}||_2^2 = \sum_{i=1}^n{(Y_i-\hat{Y}_i)^2} = \sum_{i=1}^n{(Y_i-\hat{\beta}_0 -\hat{\beta}_1x_i)^2}
 $$
 
-Тогава 
+Тогава
 
 $$
 \frac{\hat{RSS}}{\sigma^2} \sim \chi^2_{n-2}
@@ -1435,7 +1435,9 @@ $$
 E[\frac{\hat{RSS}}{\sigma^2}] = n-2 \implies E[\frac{\hat{RSS}}{n-2}] = \sigma^2
 $$
 
-Така получаваме [неизместена оценка](https://en.wikipedia.org/wiki/Bias_of_an_estimator) $\hat{\sigma}^2 := \frac{\hat{RSS}}{n-2}$ с дисперсия $2\sigma^4/(n-2)$.
+Така получаваме [неизместена оценка](https://en.wikipedia.org/wiki/Bias_of_an_estimator) $\hat{\sigma}^2 := \frac{\hat{RSS}}{n-2}$
+
+<!-- с дисперсия $2\sigma^4/(n-2)$. -->
 Получената оценка можем да използваме в гореполучените дисперсии на $\hat{\beta_0}$ и $\hat{\beta_1}$ за да изградим оценки за 
 техните дисперсии.
 
@@ -1672,4 +1674,70 @@ predict.lm(
   level = 0.95
 )
 ```
+
+### Линейна Регресия с повече от един предиктор Х
+
+Често се налага да обясним линейно променливата $Y$ не само с една независима променлинва $X_1$, но с много 
+такива $X_1, ..., X_n$ и да се опитаме да оценим очакването на уравнението 
+$y_i = \beta_0 + \beta_1x_{i1} + ... + \beta_px_{ip} + \epsilon_i$
+
+Тоест, ако разгледаме простата линейна регресия като матрично уравнение
+
+$$
+\overrightarrow{Y} = [\overrightarrow{1}, \overrightarrow{X}]\overrightarrow{\beta}
+=\begin{pmatrix}
+1 & x_1\\
+\ldots & \ldots \\
+1 & x_n
+\end{pmatrix}\begin{pmatrix}
+\beta_0 \\
+\beta_1
+\end{pmatrix} = \overrightarrow{\beta_0} + \beta_1\overrightarrow{x} + \overrightarrow{\epsilon}
+$$
+
+ни е необходимо просто да добавим oще колони за променливите пред различните $\beta_i$, а именно
+
+$$
+\overrightarrow{Y} = \textbf{X}\overrightarrow{\beta} + \overrightarrow{\epsilon} :=
+\begin{pmatrix}
+1 & x_{11} & \ldots & x_{1p} \\
+1 & x_{21} & \ldots & x_{2p} \\
+\ldots & \ldots & \ldots & \ldots \\
+1 & x_{n1} & \ldots & x_{np}
+\end{pmatrix}\begin{pmatrix}
+\beta_0 \\
+\beta_1 \\
+\ldots \\
+\beta_p
+\end{pmatrix} + \begin{pmatrix}
+\epsilon_0 \\
+\epsilon_1 \\
+\ldots \\
+\epsilon_n
+\end{pmatrix}
+= 
+\beta_0\overrightarrow{1} + \beta_1\overrightarrow{x_1} + \ldots + \beta_p\overrightarrow{x_p} +
+\overrightarrow{\epsilon}
+$$
+където, векторът $\overrightarrow{\epsilon}$ е вектор от независими еднакво разпределени грешки с 
+нормално разпределение.
+
+В този смисъл ако вземем очакването, грешките ще паднат, защото са с очакване $0$
+
+$$
+E(\overrightarrow{Y}) = \textbf{X}\overrightarrow{\beta} = \beta_0\overrightarrow{1} + \beta_1\overrightarrow{x_1} + \ldots + \beta_p\overrightarrow{x_p}
+$$
+и очакването на вектора $Y$ ще принадлежи на пространството породено от колоните на матрицата 
+$\textbf{X}$, което ще означаваме с $\Omega$.
+
+Тогава, естествен начин за оценка $\hat{Y}$ на $Y$ е да изберем $\hat{Y}$ да принадлежи на това 
+пространство $\Omega$ и в същото време, отново да минимизира разстоянието между наблюдавания вектор $Y$,
+тоест да изберем такива коефициенти $\overrightarrow{\beta} = \beta_0, ..., \beta_p$ че да минимизират разстоянието
+до $\Omega$
+
+$$
+\overrightarrow{\hat{\beta}} = \rho(\overrightarrow{Y}, \overrightarrow{\hat{Y}})^2 := ||\overrightarrow{Y} - \overrightarrow{\hat{Y}}||_2^2 =
+\sum_{i=1}^n(y_i - \hat{y_i})^2
+$$
+
 
