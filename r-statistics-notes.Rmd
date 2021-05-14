@@ -1674,3 +1674,68 @@ predict.lm(
   level = 0.95
 )
 ```
+
+### Линейна Регресия с повече от един предиктор Х
+
+Често се налага да обясним линейно променливата $Y$ не само с една независима променлинва $X_1$, но с много 
+такива $X_1, ..., X_n$ и да се опитаме да оценим очакването на уравнението 
+$y_i = \beta_0 + \beta_1x_{i1} + ... + \beta_px_{ip} + \epsilon_i$
+
+Тоест, ако разгледаме простата линейна регресия като матрично уравнение
+
+$$
+\overrightarrow{Y} = [\overrightarrow{1}, \overrightarrow{X}]\overrightarrow{\beta}
+=\begin{pmatrix}
+1 & x_1\\
+\ldots & \ldots \\
+1 & x_n
+\end{pmatrix}\begin{pmatrix}
+\beta_0 \\
+\beta_1
+\end{pmatrix} = \overrightarrow{\beta_0} + \beta_1\overrightarrow{x} + \overrightarrow{\epsilon}
+$$
+
+ни е необходимо просто да добавим oще колони за променливите пред различните $\beta_i$, а именно
+
+$$
+\overrightarrow{Y} = \textbf{X}\overrightarrow{\beta} + \overrightarrow{\epsilon} :=
+\begin{pmatrix}
+1 & x_{11} & \ldots & x_{1p} \\
+1 & x_{21} & \ldots & x_{2p} \\
+\ldots & \ldots & \ldots & \ldots \\
+1 & x_{n1} & \ldots & x_{np}
+\end{pmatrix}\begin{pmatrix}
+\beta_0 \\
+\beta_1 \\
+\ldots \\
+\beta_p
+\end{pmatrix} + \begin{pmatrix}
+\epsilon_0 \\
+\epsilon_1 \\
+\ldots \\
+\epsilon_n
+\end{pmatrix}
+= 
+\beta_0\overrightarrow{1} + \beta_1\overrightarrow{x_1} + \ldots + \beta_p\overrightarrow{x_p} +
+\overrightarrow{\epsilon}
+$$
+където, векторът $\overrightarrow{\epsilon}$ е вектор от независими еднакво разпределени грешки с 
+нормално разпределение.
+
+В този смисъл ако вземем очакването, грешките ще паднат, защото са с очакване $0$
+
+$$
+E(\overrightarrow{Y}) = \textbf{X}\overrightarrow{\beta} = \beta_0\overrightarrow{1} + \beta_1\overrightarrow{x_1} + \ldots + \beta_p\overrightarrow{x_p}
+$$
+и очакването на вектора $Y$ ще принадлежи на пространството породено от колоните на матрицата 
+$\textbf{X}$, което ще означаваме с $\Omega$.
+
+Тогава, естествен начин за оценка $\hat{Y}$ на $Y$ е да изберем $\hat{Y}$ да принадлежи на това 
+пространство $\Omega$ и в същото време, отново да минимизира разстоянието между наблюдавания вектор $Y$,
+тоест да изберем такива коефициенти $\overrightarrow{\beta} = \beta_0, ..., \beta_p$ че да минимизират разстоянието
+до $\Omega$
+
+$$
+\overrightarrow{\hat{\beta}} = \rho(\overrightarrow{Y}, \overrightarrow{\hat{Y}})^2 := ||\overrightarrow{Y} - \overrightarrow{\hat{Y}}||_2^2 =
+\sum_{i=1}^n(y_i - \hat{y_i})^2
+$$
