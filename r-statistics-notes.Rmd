@@ -668,6 +668,7 @@ $$
 върху разликите между всички наблюдения.
 
 ##### Пример:
+
 ```{r manual-paired-t-test}
 # Брой елементи от които ще симулираме извадка
 n <- 30
@@ -1287,6 +1288,8 @@ beta1_estimate <- sum((x - mean(x)) * (y - mean(y))) / sum((x - mean(x))^2)
 
 # Оценка за коефициента β0
 beta0_estimate <- mean(y) - beta1_estimate * mean(x)
+
+# връщане на резултат
 c("β0 Оценка" = beta0_estimate, "β1 Оценка" = beta1_estimate)
 ```
 
@@ -1308,22 +1311,79 @@ $\overrightarrow{y}$ (центрирани и нормирани спрямо $\
 или колко $\overrightarrow{y}$ се променя спрямо $\overrightarrow{x}$ (скаларно произведение).
 
 По този начин, получената оценка за $EY$ e
-$$\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x$$
+
+$$
+\hat{Y} :=: \hat{f}(x) := \hat{\beta_0}+\hat{\beta_1}x
+$$
 
 
-```{r echo=FALSE}
-advertisement %>%
-  ggplot(mapping = aes(x = tv, y = sales)) +
-  geom_point(alpha = 0.6, color = "#336699") +
-  geom_line(
-    data = advertisement, mapping = aes(x = tv, y = sales - error), color = "gray", size = 0.6
-  ) +
-  xlab("Бюджет вложен в TV Реклами") +
-  ylab("Печалби") +
-  theme_minimal() +
-  geom_smooth(method = lm, se = FALSE, color = "#a31898", alpha = 0.2, size = 0.4) +
-  ggtitle("Напаснат модел (виолетово) и истинско очакване (сиво) за продажбите")
+```{r fitted-model-line-plot, eval=FALSE, include=FALSE}
+# advertisement %>%
+#   ggplot(mapping = aes(x = tv, y = sales)) +
+#   geom_point(alpha = 0.6, color = "#336699") +
+#   geom_line(
+#     data = advertisement, mapping = aes(x = tv, y = sales - error), color = "gray", size = 0.6
+#   ) +
+#   xlab("Бюджет вложен в TV Реклами") +
+#   ylab("Печалби") +
+#   theme_minimal() +
+#   geom_smooth(method = lm, se = FALSE, color = "#a31898", alpha = 0.2, size = 0.4) +
+#   ggtitle("Напаснат модел (виолетово) и истинско очакване (сиво) за продажбите")
 ```
+```{r creating-regression-fitting, eval=FALSE, include=FALSE}
+
+# library(ggplot2)
+# library(gganimate)
+
+# anim_data <- bind_rows(
+#   mutate(
+#     advertisement, intercept = 200, slope = 0, state = as.factor(1),
+#     fitted_points = 200  + 0 * tv
+#   ),
+#   mutate(
+#     advertisement,
+#     intercept = beta0_estimate,
+#     slope = beta1_estimate,
+#     state = as.factor(2),
+#     fitted_points = beta0_estimate + beta1_estimate * tv
+#   )
+# )
+# g <- anim_data %>%
+#   ggplot(mapping = aes(x = tv, y = sales)) +
+#   geom_point(alpha = 0.6, color = "#336699") +
+#   xlab("Бюджет вложен в TV Реклами") +
+#   ylab("Печалби") +
+#   theme_minimal() +
+#   geom_abline(
+#     mapping = aes(intercept = intercept, slope = slope, size  = 0.5, alpha = 0.2),
+#     color = "#336699",
+#     size = 0.5,
+#     alpha = 0.2
+#   ) +
+#   # geom_point(
+#   #   mapping = aes(y = fitted_points),
+#   #   color = "#336699",
+#   #   alpha = 0.4
+#   # ) +
+#   geom_segment(
+#     mapping = aes(xend = tv, yend = fitted_points),
+#     color = "#336699",
+#     alpha = 0.4
+#   ) +
+#   transition_states(
+#     state,
+#     transition_length = 1,
+#     state_length = 1
+#   ) +
+#   ease_aes("sine-in-out") +
+#   ggtitle("Напасване на модел")
+# 
+# anim_save("img/regression-fit2.gif", g)
+```
+
+
+![](img/regression-fit2.gif)
+
 
 
 ---
@@ -1906,36 +1966,54 @@ $$
 Така виждаме, че всъщност тестването на хипотезата дали $\mu = 0$ в една нормално разпределена популация е всъщност, частен случай на линейна регресия без променливи (само с единичен вектор).
 
 
-```{r}
+```{r }
+# общ брой елементи
 n <- 100
+
+# генериране на извадка със средно 0.4
 y <- rnorm(n, mean = 0.4)
+
+# изпълняване на т-тест с нулева хипотеза Но := µ = 0
 t.test(y, mu = 0)
 ```
 
 Или същото с линеен модел
 
 ```{r}
-summary(lm(y ~ 1))$coefficients[, c(3, 4)]
+# линеен модел без променливи х (оценява само средното на у)
+lm(y ~ 1) %>%
+  # извикване на обобщение
+  summary() %>%
+  # взимане на т-статистиката и нейното pvalue за хипотезата, че ß0 = 0
+  {.$coefficients[, c(3, 4)]}
 ```
 
 Ако искаме да тестваме за произволно средно, трябва просто да извадим това средно от данните
 
 ```{r}
-summary(lm(y - 1 ~ 1))$coefficients[, c(3, 4)]
+# линеен модел без променливи х (оценява само средното на у с изместване единица)
+lm(y - 1 ~ 1) %>%
+  # обобщение
+  summary() %>%
+  # взимане на т-статистиката и нейното pvalue за хипотезата, че ß0 = 0 (което е дали средното е 1 като вземем предвид изместването)
+  {.$coefficients[, c(3, 4)]}
 ```
+
+Или с **t.test**
 
 ```{r}
 t.test(y, mu = 1)
 ```
 
-Но какво правим когато имаме две извадки, всяка с размер n и искаме да направим тест дали идват от популации с еднакви средни?
+Но какво правим, когато имаме две извадки, всяка с размер n и искаме да направим тест дали идват от популации с еднакви средни?
 
 Ако разгледаме следния модел
 
 $$
 Y = \beta_0 + \beta_1X + \epsilon
 $$
-където Y e конкатенация на двете извадки, а $X = \unicode{x1D7D9}_{Y \in \text{извадка 2}}$, тоест $x_i = 0$ за $i = 1,..., n$ и $x_i = 1$ за $i = n + 1, ...., 2n$
+където Y e конкатенация на двете извадки, а $X = \unicode{x1D7D9}_{Y \in \text{извадка 2}}$, 
+тоест $x_i = 0$ за $i = 1,..., n$ и $x_i = 1$ за $i = n + 1, ...., 2n$
 
 Така ако теглиме от първата извадка, оценката за $Y$ става $\hat{Y} = \hat{\beta}_0 = \bar{Y}_{\text{извадка 1}}$, 
 а ако теглим от втората извадка $\hat{Y} = \hat{\beta}_0 + \hat{\beta}_11 = \hat{\beta}_0 + \hat{\beta}_1$ и така 
@@ -1948,13 +2026,11 @@ y2 <- rnorm(50, mean = 15)
 
 y <- c(y1, y2)
 x <- rep(c(0, 1), each = 50)
-# по-кратко става така
-# x = 0 + (1:100 > 50)
 
 # сметки за наклона
 # (x - mean(x)) * (y - mean(y))
-# (-0.5 * y1 + 0.5 * y2) = -0.5 * (y2 - y1)
-# 2 * sum((x - mean(x))^2) = 50 =>
+# (-0.5 * y1 + 0.5 * y2) = -0.5 * (y2 - y1), можем да преместим 0.5 в знаменателя и да стане 2 там
+# 2 * sum((x - mean(x))^2) => делим на 50 => имаме осредняване, защото 50 e броя на елементи в двете извадки
 # => mean(y2 - y1)
 
 # визуализация на данните и теста
@@ -1980,7 +2056,26 @@ data.frame(y = y, x = x, sample = rep(c("Извадка 1", "Извадка 2"),
 
 
 ```{r}
-summary(lm(y ~ x))$coefficients[2, c(3, 4)]
+# генериране на извадка 1
+y1 <- rnorm(50, mean = 10)
+
+# генериране на извадка 2
+y2 <- rnorm(50, mean = 15)
+
+# конкатениране на цялостния вектор
+y <- c(y1, y2)
+
+# индикаторна х променлива
+x <- rep(c(0, 1), each = 50)
+# може да се дефинира и така
+x <- 0 + (1:100 > 50)
+
+# изпълнение на модела обясняващ y срямо индикаторна променлива
+lm(y ~ x) %>%
+  # обобщение
+  summary() %>% 
+  # Взимане на Т-статистиката и нейното pvalue за коефициента ß1
+  {.$coefficients[2, c(3, 4)]}
 ```
 
 Което е същото като да използваме функцията **t.test** за две извадки
@@ -1988,4 +2083,70 @@ summary(lm(y ~ x))$coefficients[2, c(3, 4)]
 ```{r}
 t.test(y2, y1)
 ```
+
+#### ANOVA (**Ан**ализ на **Ва**риациите)
+
+В горния пример, бихме могли да тестваме, дали променливата Х има ефект върху модела и по друг начин. Ако изпълниме F-тест, той на практика 
+би проверил точно това - дали $\beta_1 = 0$ и дали втората извадка статистически значително променя цялостното средно, тоест дали подобрява модела и  драстично се различават двете извадки, защото $\beta_j$ ще представлява разликата между
+
+$$
+H_0 := \{ \beta_1  = 0 \iff \bar{Y} = \beta_0 \iff \text{Извадка 2 e същата като Извадка 1 спрямо истинско средно} \} \\
+H_1 := \{ \beta_1  \neq 0 \iff \text{Извадка 2 се различава значително от Извадка 1 спрямо средното} \}
+$$
+
+
+```{r}
+# изпълнение на модела обясняващ y срямо индикаторна променлива
+lm(y ~ x) %>%
+  # обобщение
+  summary() %>% 
+  # Взимане на Т-статистиката и нейното pvalue за коефициента ß1
+  {.$F.statistic}
+
+lm(y ~ x) %>%
+  # обобщение
+  summary()
+```
+Ако разширим модела си с повече от две извадки, изпълнявайки $F$-тест, всъщност ще питаме дали има извадка чиято популация драстично се различава от тази на другите.
+
+$$
+H_0 := \{ \beta_1  = \beta_2 = ... = \beta_p = 0 \iff Y = \beta_0 \iff \text{Всички извадки идват от една и съща популация} \} \\
+H_1 := \{ \exists j : \beta_j  \neq 0 \iff \text{Има извадка чието разпределение драстично се различава от останалите} \}
+$$
+
+```{r echo=FALSE}
+n <- 250
+sigma <- 6
+
+y1 <- rnorm(n, mean = 10, sd = sigma)
+y2 <- rnorm(n, mean = 11, sd = sigma)
+y3 <- rnorm(n, mean = 9, sd = sigma)
+y4 <- rnorm(n, mean = 10.5, sd = sigma)
+y5 <- rnorm(n, mean = 9.5, sd = sigma)
+
+y <- c(y1, y2, y3, y4, y5)
+x1 <- rep(c(0, 1, 0, 0, 0), each = n)
+x2 <- rep(c(0, 0, 1, 0, 0), each = n)
+x3 <- rep(c(0, 0, 0, 1, 0), each = n)
+x4 <- rep(c(0, 0, 0, 0, 1), each = n)
+x <- rep(1:5, each = n)
+
+# визуализация на данните и теста
+data.frame(y = y, x = x, sample = rep(paste0("Извадка ", 1:5), each = n)) %>%
+  ggplot(mapping = aes(x = x, y = y, color = sample)) +
+  geom_jitter() +
+  geom_point(aes(x = 1, y = mean(y1)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
+  geom_point(aes(x = 2, y = mean(y2)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
+  geom_point(aes(x = 3, y = mean(y3)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
+  geom_point(aes(x = 4, y = mean(y4)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
+  geom_point(aes(x = 5, y = mean(y5)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
+  theme_minimal() +
+  ylab("Стойности на наблюденията") +
+  ggtitle("Пет извадки") +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  xlab("Извадки")
+
+```
+
+
 
