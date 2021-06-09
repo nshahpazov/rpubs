@@ -13,6 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 <a href="https://github.com/nshahpazov/rpubs/blob/main/r-statistics-notes.Rmd" rel="repo" style="width: 50px; height: 50px; position: absolute; top: 60px; right: 10px">![Foo](./img/octocat.png)</a>
 
 ## Точкови оценки
@@ -48,9 +49,12 @@ library("ggplot2")
 library("ggridges")
 library("plotly")
 library("pwr")
+library("ggpomological")
+
+# ?extrafont::font_import()
 ```
 
-```{r simulation-of-mean, fig.height = 4, fig.width = 7}
+```{r simulation-of-mean}
 # library("tidyverse")
 # library("ggplot2")
 
@@ -69,9 +73,13 @@ c(10, 100, 1000) %>%
   ggplot() +
   geom_density(mapping = aes(x = x, fill = size)) +
   facet_wrap(~size) +
-  ggtitle("Емпирично Разпределение на извадково средно при n=10, 100, 1000") +
+  ggtitle("Плътност на извадково средно при n=10, 100, 1000") +
   xlab("извадково средно") +
-  ylab("емпирична плътност на извадково средно")
+  ylab("емпирична плътност на извадково средно") +
+    # theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 Още една визуализация
@@ -92,6 +100,9 @@ c(10, 50, 100, 250, 500, 750, 1000, 1500, 2000, 5000) %>%
     scale = 2, alpha = 0.6, rel_min_height = 0.01,
     # jittered_points = TRUE, position = "raincloud"
   ) +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological() +
   ggtitle("Емпирично Разпределение на извадково средно") +
   xlab("извадково средно") +
   ylab("емпирична плътност на извадково средно")
@@ -268,6 +279,7 @@ $$
 ---
 
 Когато $\sigma$ също е неизвестна, то
+
 $$
 Т := \frac{\bar{X} - 190}{S / \sqrt{n}} \sim \mathcal{T}(n-1)
 $$
@@ -423,7 +435,9 @@ c(5, 10, 20, 30, 70, 140) %>%
   xlab("Т-статистика") +
   ylab("Вероятностни плътности") +
   ggtitle("Промяна на силата при увеличаване на броя на елементи") +
-  theme_bw() +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological() +
   theme(legend.position = "bottom")
 ```
 
@@ -443,8 +457,11 @@ seq(4, 30, by = 4) %>%
   ggplot(mapping = aes(x = n, y = y, color = st.dev)) +
   geom_line() +
   xlab("Брой елементи в извадката") +
-  ylab("Сила на теста (π)") +
-  ggtitle("Сила (π) при n = 1, ..., 200 за различни стандартни отклонения")
+  ylab("Сила на теста π") +
+  ggtitle("Сила π при n = 1, ..., 200") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 Забелязваме, че силата на теста $\pi$ расте при увеличаване на броя на наблюденията, но при по-голямо стандартно 
@@ -465,7 +482,9 @@ seq(0.0005, 0.8, by = 0.005) %>%
   xlab("Ниво на значимост α") +
   ylab("Сила на теста π") +
   ggtitle("Сила на теста π при качване на нивото на значимост α") +
-  theme_minimal()
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 При качване на нивото на значимост $\alpha$, качваме силата на теста ($\pi$) и намаляваме 
@@ -499,7 +518,10 @@ bind_rows(
   xlab("Емпирични плътности") +
   ylab("Наблюдения") +
   theme_minimal() +
-  ggtitle("Наблюдавани стойности и емпирични плътности на две групи")
+  ggtitle("Наблюдения и плътности на две групи") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 Aко имаме $pvalue < \alpha$, където $\alpha$ е **нивото на значимост**, а **t** e наблюдаваната стойност за **T-статистиката**, можем да отхвърлим нулевата хипотеза, че $\mu_1=\mu_2$.
@@ -764,7 +786,11 @@ data.frame(x = rwilcox(40000, m = 12, n = 12)) %>%
   ggplot(mapping = aes(x = x, fill = "U")) +
   geom_histogram(binwidth = 1) +
   ggtitle("Разпределение на Симулирана U-статистика") +
-  xlab("U")
+  xlab("U") +
+  ylab("Честота") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 Виждаме, че разпределението прилича на Нормално разпределение при увеличение на броя на наблюдения $n$.
@@ -868,7 +894,10 @@ s <- 2000
   geom_density(alpha = 0.25) +
   ggtitle("X^2 статистиката с Хи-квадрат разпределение") +
   xlab("X^2") +
-  ylab("Емпирична Плътност")
+  ylab("Емпирична Плътност") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 Нека направим тест с четири групи симулирани с теоретични вероятности 1/4 за всяка и $n=60$. Тогава, ако
@@ -912,11 +941,12 @@ seq(8, 80, by = 5) %>%
     calc_ecdf = TRUE, rel_min_height = 0.01, scale = 4, alpha = 0.7,
     quantiles = c(0.95)
   ) +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
   scale_fill_manual(
     name = "Probability", values = c("#62b5b2A0", "#FF0000A0"),
     labels = c("Допустима област", "Критична Област")
   ) +
-  ggtitle("Приблизителни Хи-квадрат разпределения на X^2 и критична област") +
+  ggtitle("Хи-квадрат разпределения") +
   xlab("X^2 при вярна нулева хипотеза")
 ```
 
@@ -960,10 +990,12 @@ bind_rows(
 )  %>%
   ggplot(mapping = aes(x = x, y = y, fill = type)) +
   geom_bar(position = "dodge", stat = "identity") +
-  ggtitle("Наблюдавани и хипотетични вероятности за разпределението") +
+  ggtitle("Наблюдавани и хипотетични вероятности") +
   xlab("X") +
   ylab("Плътност") +
-  theme_light()
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 Така, ако нулевата хипотеза е вярна, 
@@ -1043,7 +1075,10 @@ bind_rows(
   coord_flip() +
   xlab("Интервали на Дискретизация") +
   ylab("Честота на срещане в интервала") +
-  ggtitle("Честота на Дискретизирани данни")
+  ggtitle("Честота на Дискретизирани данни") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ```
 
 ```{r chi-square-test-for-continuous-rv}
@@ -1165,11 +1200,14 @@ advertisement <- data.frame(tv = x, sales = y + error, sample = "Извадка 
 
 ads_plot <- advertisement %>%
   ggplot(mapping = aes(x = tv, y = sales)) +
-  geom_point(color = "#336699", alpha = 0.4) +
+  geom_point(color = "orange", alpha = 0.6, size = 2) +
   xlab("Бюджет вложен в TV Реклами") +
   ylab("Печалби") +
   ggtitle("Приходи спрямо бюджет вложен в TV реклами") +
-  theme_minimal()
+  theme_minimal() +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 ads_plot
 ```
 
@@ -1208,7 +1246,9 @@ ads_plot_with_ey <- data.frame(sales = y + rnorm(100, sd = 40), tv = x, sample =
   ) +
   xlab("Бюджет вложен в TV Реклами") +
   ylab("Печалби") +
-  theme_minimal()
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological()
 
 ads_plot_with_ey +
   geom_point(alpha = 0.6, mapping = aes(color = sample)) +
@@ -1350,35 +1390,33 @@ $$
 # )
 # g <- anim_data %>%
 #   ggplot(mapping = aes(x = tv, y = sales)) +
-#   geom_point(alpha = 0.6, color = "#336699") +
+#   geom_point(color = "#f48830", size = 2) +
 #   xlab("Бюджет вложен в TV Реклами") +
 #   ylab("Печалби") +
-#   theme_minimal() +
+#   # theme_pomological(base_family = "Pacifico", base_size = 16) +
 #   geom_abline(
 #     mapping = aes(intercept = intercept, slope = slope, size  = 0.5, alpha = 0.2),
-#     color = "#336699",
+#     color = "#f48830",
 #     size = 0.5,
 #     alpha = 0.2
 #   ) +
-#   # geom_point(
-#   #   mapping = aes(y = fitted_points),
-#   #   color = "#336699",
-#   #   alpha = 0.4
-#   # ) +
-#   geom_segment(
-#     mapping = aes(xend = tv, yend = fitted_points),
-#     color = "#336699",
-#     alpha = 0.4
-#   ) +
-#   transition_states(
-#     state,
-#     transition_length = 1,
-#     state_length = 1
-#   ) +
-#   ease_aes("sine-in-out") +
-#   ggtitle("Напасване на модел")
-# 
-# anim_save("img/regression-fit2.gif", g)
+  # geom_segment(
+  #   mapping = aes(xend = tv, yend = fitted_points),
+  #   color = "##f48830",
+  #   alpha = 0.4
+  # ) +
+  # transition_states(
+  #   state,
+  #   transition_length = 1,
+  #   state_length = 1
+  # ) +
+  # ease_aes("sine-in-out") +
+  # ggtitle("Напасване на модел") +
+  # theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  # scale_fill_pomological() + 
+  # scale_color_pomological()
+
+# anim_save("img/regression-fit3.gif", g)
 ```
 
 
@@ -1466,7 +1504,7 @@ estimates %>%
   ggtitle("Съвместно плътностно разпределение на оценките на β0 и β1") +
   xlab("Оценка на β1") +
   ylab("Оценка на β0") +
-  facet_wrap(~n, scales = "free") # +
+  facet_wrap(~n, scales = "free")
   # theme(
   #   axis.title.x = element_blank(),
   #   axis.text.x = element_blank(),
@@ -1662,13 +1700,19 @@ lm(sales ~ tv, advertisement) %>%
 ```{r echo=FALSE}
 advertisement %>%
   mutate(sample = "Наблюдавани данни") %>%
-  add_row(tv = 144, sales = 0, sample = "Ненаблюдавано х") %>%
+  add_row(tv = 144, sales = 230, sample = "Ненаблюдавано х") %>%
   ggplot(mapping = aes(x = tv, y = sales, color = sample)) +
   geom_smooth(method = "lm", fill = NA, lwd = 1, color = "gray") +
   geom_point() +
+  # theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  # scale_fill_pomological() + 
+  # scale_color_pomological() +
   ggtitle("Ненаблюдавани досега данни") +
   xlab("Инвестиции в TV реклами") +
-  ylab("Продажби")
+  ylab("Продажби") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() +
+  scale_color_pomological()
 ```
 
 Използвайки досега напаснатия модел, оценката за очакването на y върху определена точка $x_0$ е
@@ -1900,22 +1944,17 @@ $\mathcal{F}$-разпределение с параметри $df_1$ и $df_2$ 
 
 По този начин, можем да измерим вероятността да наблюдаваме определена $F$-статистика (или по-крайна) с функцията 
 **pf(q, df1, df2)**. Ако съответната вероятност е прекалено малка (примерно по-малка от $\alpha := 0.05$), можем
-да отхвърлим нулевата хипотеза $H_0 := $\beta_1 = \beta_2 = ... = \beta_p = 0$ и да примем алтернативата, че 
+да отхвърлим нулевата хипотеза $H_0 := \beta_1 = \beta_2 = ... = \beta_p = 0$ и да примем алтернативата, че 
 съществува променлива $X_j$ която подобрява модела.
 
 
 ```{r echo=FALSE}
 # Същото като rf
+
 simulate_f <- function (n, df1, df2) (rchisq(n, df1) / df1) / (rchisq(n, df2) / df2)
 
 list(
-  list(df1 = 1, df2 = 2),
-  list(df1 = 4, df2 = 5),
-  list(df1 = 1, df2 = 10),
-  list(df1 = 100, df2 = 1),
-  list(df1 = 5, df2 = 10),
-  list(df1 = 100, df2 = 100),
-  list(df1 = 200, df2 = 200)
+  list(df1 = 1, df2 = 2), list(df1 = 100, df2 = 1), list(df1 = 100, df2 = 100)
 ) %>%
   imap(
     ~data.frame(
@@ -1926,15 +1965,84 @@ list(
   bind_rows() %>%
   ggplot(mapping = aes(x = x, fill = distribution)) +
   geom_density(alpha = 0.4) +
-  ggtitle("F-разпределени случайни величини с различна параметризация") +
+  ggtitle("F-разпределени случайни величини") +
   xlab("F") +
   ylab("Емпирична Плътност") +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological() +
   xlim(c(0, 4))
+```
+
+
+
+
+```{r include=FALSE}
+beta0 <- 120
+beta1 <- 0.6
+beta2 <- 0.4
+beta3 <- 0.7
+beta4 <- 0.8
+
+error <- rnorm(100, sd = 40)
+
+advertisement2 <- data.frame(
+  tv = runif(100, 1, 400),
+  radio = runif(100, 1, 400),
+  newspaper = runif(100, 1, 400),
+  facebook = runif(100, 1, 400),
+  google = runif(100, 1, 400)
+) %>%
+  mutate(
+    sales = beta0 + beta1 * tv + beta2 * radio + beta3 * newspaper + beta4 * facebook + error
+  )
+```
+
+
+```{r}
+# изграждане на модел с много променливи
+multiple_model <- lm(sales ~ tv + radio + newspaper + facebook, data = advertisement2)
+
+# напаснати данни
+y_fitted <- fitted(multiple_model)
+
+# истински данни
+y <- advertisement2$sales
+
+# брой елементи
+n <- 100
+
+# брой предиктори
+p <- 4
+
+# Total sum of squares (TSS)
+tss <- sum((y - mean(y))^2)
+# Residual sum of squares (RSS)
+rss <- sum((y_fitted - y)^2)
+
+# изчисление на F-статистика
+f_statistic <- ((tss - rss) / p) / (rss / (n - p - 1))
+
+# изчисление на pvalue за F-статистиката
+pvalue <- pf(f_statistic, p, n - p - 1, lower.tail = FALSE)
+
+# резултат
+c("f_statistic" = f_statistic, "pvalue" = pvalue, "df1" = p, "df2" = n - p - 1)
+```
+
+Или просто със summary
+
+```{r}
+multiple_model %>%
+  # обобщение на модела
+  summary() %>%
+  # взимане на f-статистиката от обобщението
+  .$fstatistic
 ```
 
 #### 2. Намиране на важни променливи
 
-Един начин за намиране на важни и обясняващи $Y$ променливи $Х_1, ..., Х_п$ e първо да пробваме с празен модел
+Един начин за намиране на важни и обясняващи $Y$ променливи $Х_1, ..., Х_п$ e първо да пробваме с празен модел (само с единичен вектор умножен по $\beta_0$)
 
 $$
 Y = \beta_0 + \epsilon
@@ -1958,12 +2066,12 @@ $$
 $$
 \hat{\beta}_0 = \bar{y}
 $$
-а това да тестваме, дали $\beta_0 = 0$ се транслира до
+а това да тестваме дали $\beta_0 = 0$, се транслира до
 $$
-T := \frac{\hat{\beta}_0 - 0}{\hat{sd}(\hat{\beta_0})} = \frac{\hat{\beta}_0 - 0}{\hat{\sigma}/\sqrt{n}} \sim \mathcal{T}(n-1)
+T := \frac{\hat{\beta}_0 - 0}{\hat{sd}(\hat{\beta_0})} = \frac{\bar{y} - 0}{\hat{\sigma}/\sqrt{n}} \sim \mathcal{T}(n-1)
 $$
 
-Така виждаме, че всъщност тестването на хипотезата дали $\mu = 0$ в една нормално разпределена популация е всъщност, частен случай на линейна регресия без променливи (само с единичен вектор).
+Така виждаме, че всъщност тестването на хипотезата дали $\mu = 0$ в една нормално разпределена популация, е всъщност частен случай на линейна регресия без променливи (само с единичен вектор).
 
 
 ```{r }
@@ -1977,10 +2085,10 @@ y <- rnorm(n, mean = 0.4)
 t.test(y, mu = 0)
 ```
 
-Или същото с линеен модел
+Или същото с линейна регресия
 
 ```{r}
-# линеен модел без променливи х (оценява само средното на у)
+# линейна регресия без променливи х (оценява само средното на у)
 lm(y ~ 1) %>%
   # извикване на обобщение
   summary() %>%
@@ -1991,7 +2099,7 @@ lm(y ~ 1) %>%
 Ако искаме да тестваме за произволно средно, трябва просто да извадим това средно от данните
 
 ```{r}
-# линеен модел без променливи х (оценява само средното на у с изместване единица)
+# линейна регресия без променливи х (оценява само средното на у с изместване единица)
 lm(y - 1 ~ 1) %>%
   # обобщение
   summary() %>%
@@ -2005,20 +2113,40 @@ lm(y - 1 ~ 1) %>%
 t.test(y, mu = 1)
 ```
 
-Но какво правим, когато имаме две извадки, всяка с размер n и искаме да направим тест дали идват от популации с еднакви средни?
+Но какво правим, когато имаме две нормални извадки, всяка с размер n и искаме да направим тест дали идват от популации с еднакви средни?
 
 Ако разгледаме следния модел
 
 $$
 Y = \beta_0 + \beta_1X + \epsilon
 $$
+
 където Y e конкатенация на двете извадки, а $X = \unicode{x1D7D9}_{Y \in \text{извадка 2}}$, 
 тоест $x_i = 0$ за $i = 1,..., n$ и $x_i = 1$ за $i = n + 1, ...., 2n$
 
-Така ако теглиме от първата извадка, оценката за $Y$ става $\hat{Y} = \hat{\beta}_0 = \bar{Y}_{\text{извадка 1}}$, 
+В горното уравнение на линия, отново $\beta_1$ представлява наклона който имаме. В този смисъл
+$$
+\beta_1 = \frac{\Delta y}{\Delta x} = \frac{\Delta y}{1} = \Delta y
+$$
+
+
+![](img/slope.png){ height: 100px; width: 100px; }
+
+Така, ако теглиме от първата извадка, оценката за $Y$ става $\hat{Y} = \hat{\beta}_0 = \bar{Y}_{\text{извадка 1}}$, 
 а ако теглим от втората извадка $\hat{Y} = \hat{\beta}_0 + \hat{\beta}_11 = \hat{\beta}_0 + \hat{\beta}_1$ и така 
-$\hat{\beta}_1$ e оценка за разликата в средните. Ако тестваме дали $\beta_0 = 0$, реално тестваме дали 
-има разлика в средните популациите от които произлизат двете извадки.
+$\hat{\beta}_1$ e оценка за разликата в средните. Ако тестваме дали $\beta_1 = 0$, реално тестваме дали 
+има разлика в средните на популациите от които произлизат двете извадки.
+
+Оценката за $\beta_1$ в случая ще бъде
+
+$$
+\hat{\beta_1} = \frac{\sum_{i=1}^{2n}(x_i-\bar{x})(y_i-\bar{y})}{\sum_{i=1}^{2n}(x_i-\bar{x})^2} = \\
+= \frac{\sum_{i=1}^{n}(0 - 0.5)(y_i-\bar{y}) + \sum_{i=n+1}^{2n}(1 - 0.5)(y_i-\bar{y})}{\sum_{i=1}^{2n}(0.5)^2} = \\
+= \frac{0.5(\sum_{i=n+1}^{2n}y_i - \sum_{i=1}^{n}y_i)}{2n(0.5)^2} = \\
+\frac{\sum_{i=n+1}^{2n}y_i - \sum_{i=1}^{n}y_i}{n} = \bar{y}_{\text{извадка 1}} - \bar{y}_{\text{извадка 2}}
+$$
+
+Виждаме че всъщност, оценката $\hat{\beta}_1$ за $\beta_1$ е разликата в средните между двете извадки.
 
 ```{r echo=FALSE}
 y1 <- rnorm(50, mean = 10)
@@ -2029,7 +2157,7 @@ x <- rep(c(0, 1), each = 50)
 
 # сметки за наклона
 # (x - mean(x)) * (y - mean(y))
-# (-0.5 * y1 + 0.5 * y2) = -0.5 * (y2 - y1), можем да преместим 0.5 в знаменателя и да стане 2 там
+# (-0.5 * y1) + (0.5 * y2) = -0.5 * (y2 - y1), можем да преместим 0.5 в знаменател и да стане 2 там
 # 2 * sum((x - mean(x))^2) => делим на 50 => имаме осредняване, защото 50 e броя на елементи в двете извадки
 # => mean(y2 - y1)
 
@@ -2047,13 +2175,20 @@ data.frame(y = y, x = x, sample = rep(c("Извадка 1", "Извадка 2"),
     size = 0.79,
     alpha = 0.6
   ) +
-  theme_minimal() +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological() +
   ylab("Стойности на наблюденията") +
-  ggtitle("Две извадки с линеен модел") +
+  ggtitle("Две извадки с линейна регресия") +
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
   xlab("Извадки")
 ```
 
+Така, ако тестваме дали $\beta_1 = 0$, получаваме следната T-статистика
+
+$$
+Т := \frac{\bar{y}_{\text{извадка 1}} - \bar{y}_{\text{извадка 2}}}{\hat{sd}(\hat{\beta}_1)}
+$$
 
 ```{r}
 # генериране на извадка 1
@@ -2078,7 +2213,7 @@ lm(y ~ x) %>%
   {.$coefficients[2, c(3, 4)]}
 ```
 
-Което е същото като да използваме функцията **t.test** за две извадки
+Което е същото като да направим **Т-тест** за това дали двете извадки са с еднакво средно.
 
 ```{r}
 t.test(y2, y1)
@@ -2086,67 +2221,292 @@ t.test(y2, y1)
 
 #### ANOVA (**Ан**ализ на **Ва**риациите)
 
-В горния пример, бихме могли да тестваме, дали променливата Х има ефект върху модела и по друг начин. Ако изпълниме F-тест, той на практика 
-би проверил точно това - дали $\beta_1 = 0$ и дали втората извадка статистически значително променя цялостното средно, тоест дали подобрява модела и  драстично се различават двете извадки, защото $\beta_j$ ще представлява разликата между
+В горния пример, бихме могли да тестваме по още един начин, дали променливата Х (тоест дали двете извадки се различават 
+значително) има ефект върху модела. Ако изпълниме F-тест, той на практика 
+би проверил точно това - дали $\beta_1 = 0$, тоест дали втората извадка статистически значително променя цялостното средно (има статистически значима разлика между двете средни).
 
 $$
-H_0 := \{ \beta_1  = 0 \iff \bar{Y} = \beta_0 \iff \text{Извадка 2 e същата като Извадка 1 спрямо истинско средно} \} \\
+H_0 := \{ \beta_1  = 0 \iff \bar{Y} = \beta_0 \iff \text{Извадка 2 e същата като Извадка 1
+спрямо математическото очакване} \} \\
 H_1 := \{ \beta_1  \neq 0 \iff \text{Извадка 2 се различава значително от Извадка 1 спрямо средното} \}
 $$
-
 
 ```{r}
 # изпълнение на модела обясняващ y срямо индикаторна променлива
 lm(y ~ x) %>%
-  # обобщение
-  summary() %>% 
-  # Взимане на Т-статистиката и нейното pvalue за коефициента ß1
-  {.$F.statistic}
-
-lm(y ~ x) %>%
-  # обобщение
+  # обобщение от което да рагледаме F-статистиката и нейното pvalue
   summary()
 ```
-Ако разширим модела си с повече от две извадки, изпълнявайки $F$-тест, всъщност ще питаме дали има извадка чиято популация драстично се различава от тази на другите.
+
+Ако разширим модела си с повече от две извадки, изпълнявайки $F$-тест, всъщност ще питаме дали има извадка чиято популация драстично се различава от тази на другите спрямо средните.
 
 $$
 H_0 := \{ \beta_1  = \beta_2 = ... = \beta_p = 0 \iff Y = \beta_0 \iff \text{Всички извадки идват от една и съща популация} \} \\
 H_1 := \{ \exists j : \beta_j  \neq 0 \iff \text{Има извадка чието разпределение драстично се различава от останалите} \}
 $$
 
-```{r echo=FALSE}
+```{r}
+# общ брой елементи
 n <- 250
+
+# дисперсия (трябва да е обща спрямо модела)
 sigma <- 6
 
-y1 <- rnorm(n, mean = 10, sd = sigma)
-y2 <- rnorm(n, mean = 11, sd = sigma)
+# петте различни извадки
+y1 <- rnorm(n, mean = 13, sd = sigma)
+y2 <- rnorm(n, mean = 16, sd = sigma)
 y3 <- rnorm(n, mean = 9, sd = sigma)
-y4 <- rnorm(n, mean = 10.5, sd = sigma)
-y5 <- rnorm(n, mean = 9.5, sd = sigma)
+y4 <- rnorm(n, mean = 6, sd = sigma)
+y5 <- rnorm(n, mean = 13, sd = sigma)
 
+# конкатениране на y променливите в eдно y
 y <- c(y1, y2, y3, y4, y5)
-x1 <- rep(c(0, 1, 0, 0, 0), each = n)
-x2 <- rep(c(0, 0, 1, 0, 0), each = n)
-x3 <- rep(c(0, 0, 0, 1, 0), each = n)
-x4 <- rep(c(0, 0, 0, 0, 1), each = n)
+
+# индикаторни променливи които ни казват в коя извадка сме
+x1 <- rep(c(0, 1, 0, 0, 0), each = n) # извадка 2
+x2 <- rep(c(0, 0, 1, 0, 0), each = n) # извадка 3
+x3 <- rep(c(0, 0, 0, 1, 0), each = n) # извадка 4
+x4 <- rep(c(0, 0, 0, 0, 1), each = n)  # извадка 5
+
 x <- rep(1:5, each = n)
 
+groups_data <- data.frame(
+  y = y,
+  x1, x2, x3, x4,
+  sample = as.factor(rep(paste0("Извадка ", 1:5), each = n))
+)
+```
+
+
+```{r echo=FALSE}
+# install.packages("devtools")
+# devtools::install_github("gadenbuie/ggpomological")
+
 # визуализация на данните и теста
-data.frame(y = y, x = x, sample = rep(paste0("Извадка ", 1:5), each = n)) %>%
+samples_plot <- groups_data %>%
   ggplot(mapping = aes(x = x, y = y, color = sample)) +
   geom_jitter() +
-  geom_point(aes(x = 1, y = mean(y1)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
-  geom_point(aes(x = 2, y = mean(y2)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
-  geom_point(aes(x = 3, y = mean(y3)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
-  geom_point(aes(x = 4, y = mean(y4)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
-  geom_point(aes(x = 5, y = mean(y5)), colour = "#667350", fill = "#667350", shape = 24, size = 2, alpha = 0.6) +
-  theme_minimal() +
+  geom_point(
+    aes(x = 1, y = mean(y1)), colour = "#667350",
+    fill = "#667350", shape = 24, size = 2, alpha = 0.6
+  ) +
+  geom_point(
+    aes(x = 2, y = mean(y2)), colour = "#667350",
+    fill = "#667350", shape = 24, size = 2, alpha = 0.6
+  ) +
+  geom_point(
+    aes(x = 3, y = mean(y3)), colour = "#667350",
+    fill = "#667350", shape = 24, size = 2, alpha = 0.6
+  ) +
+  geom_point(
+    aes(x = 4, y = mean(y4)), colour = "#667350",
+    fill = "#667350", shape = 24, size = 2, alpha = 0.6
+  ) +
+  geom_point(
+    aes(x = 5, y = mean(y5)), colour = "#667350",
+    fill = "#667350", shape = 24, size = 2, alpha = 0.6
+  ) +
+  theme_pomological_nobg(base_family = "Pacifico", base_size = 16) +
+  scale_fill_pomological() + 
+  scale_color_pomological() +
+  # theme_minimal() +
   ylab("Стойности на наблюденията") +
   ggtitle("Пет извадки") +
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
   xlab("Извадки")
 
+# the plot plus lines from the mean
+samples_plot
+```
+
+Ако го разглеждаме от гледна точка на линейна регресия с много променливи (индикатори за съответните групи), оценките за $\beta_1, .., \beta_p$ ще са разликите между средните на групи 2,3,..., р и първата група (визуално това са наклони в отделни линии). В долната графика, пресечната линия е средното на първата група (оценката за $\beta_0$).
+
+```{r echo=FALSE}
+samples_plot +
+  geom_hline(yintercept = mean(y1), color = "#667350", linetype = "dashed", alpha = 0.4) +
+  geom_segment(
+    mapping = aes(x = 0.5, y = mean(y1), xend = 1, yend = mean(y1)),
+    color = "#667350",
+    # size = 0.4,
+    alpha = 0.4,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    mapping = aes(x = 1.5, y = mean(y1), xend = 2, yend = mean(y2)),
+    color = "#667350",
+    # size = 0.4,
+    alpha = 0.4,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    mapping = aes(x = 2.5, y = mean(y1), xend = 3, yend = mean(y3)),
+    color = "#667350",
+    # size = 0.4,
+    alpha = 0.4,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    mapping = aes(x = 3.5, y = mean(y1), xend = 4, yend = mean(y4)),
+    color = "#667350",
+    # size = 0.4,
+    alpha = 0.4,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    mapping = aes(x = 4.5, y = mean(y1), xend = 5, yend = mean(y5)),
+    color = "#667350",
+    # size = 0.4,
+    alpha = 0.4,
+    linetype = "dashed"
+  )
+```
+
+За да изпълним ANOVA тест който проверява дали някоя от групите значително се различава от останалите
+(нейния коефициент значително обяснява модела), пускаме линейна регресия обясняваща y спрямо съответните 
+индикаторни променливи $x_1, ..., x_4$.
+
+```{r}
+lm(y ~ x1 + x2 + x3 + x4, data = groups_data) %>%
+  summary()
+```
+
+```{r}
+# Проверка за коефициентите и нашите разсъждения
+c(
+  "beta0" = mean(y1),
+  "beta1" = mean(y2 - y1),
+  "beta2" = mean(y3 - y1),
+  "beta3" = mean(y4 - y1),
+  "beta4" = mean(y5 - y1)
+)
+```
+
+Предположенията на **ANOVA** теста си остават същите като при линейна регресия и Т-тест - данни с нормално
+разпределение и еднаква дисперсия между групите.
+
+Бихме могли да изпълним теста и така
+
+```{r}
+# Функцията stack създава помощна факторна променлива и конкатенира y променливите в една
+anova_df <- stack(data.frame(y1, y2, y3, y4, y5))
+
+anova_df %>%
+  # линейна регресия
+  lm(values ~ ind, data = .) %>%
+  # подаваме линейния модел на anova функцията
+  anova()
+```
+
+Можем и с функцията **oneway.test**
+
+
+```{r}
+oneway.test(values ~ ind, anova_df, var.equal = TRUE)
+```
+
+Така получения тест бихме могли да използваме за да проверим дали определен фактор (група) променя 
+значително цялата съвкупност.
+
+##### Примери
+
+* Проверка дали различните методи на учене играят роля в оценката
+* Проверка дали ученето в различни университети играе роля в заплащането
+* Проверка дали различния тип гориво играе роля върху това колко изразходва колата на 100км
+* Проверка дали различни раси получават еднакво заплащане
+
+```{r eval=FALSE, include=FALSE}
+# library(chorddiag)
+# groupColors <- c("#000000", "#FFDD89", "#957244", "#F26223")
+# 
+# m2 <- c(0, rep(1, 5), rep(0, 30)) %>% matrix(ncol = 6, byrow = FALSE)
+# 
+# rownames(m2) <- c("Y", paste0("Група ", 1:5))
+# colnames(m2) <- c("Y", paste0("Група ", 1:5))
+# 
+# chorddiag(m2, groupColors = groupColors, groupnamePadding = 20)
+```
+### МANOVA (**М**ногопроменлив **Ан**ализ на **Ва**риациите)
+
+Често се налага обаче да проверим дали факторите (групите) имат ефект върху не една променлива, a 
+две променливи. Пример за това би бил въпроса дали различни видове лекарства имат значителен ефект 
+както върху хемоглобина, така и върху хематокрита.
+
+```{r eval=FALSE, include=FALSE}
+# library(chorddiag)
+# groupColors <- c("#000000", "#FFDD89", "#957244", "#F26223")
+# 
+# m3 <- c(0, 0, rep(1, 5), 0, 0, rep(1, 5), rep(0, 35)) %>% matrix(ncol = 7, byrow = FALSE)
+# 
+# rownames(m3) <- c("A", "___B", paste0("Лекарство ", 1:5))
+# colnames(m3) <- c("A", "___B ", paste0("Лекарство ", 1:5))
+# 
+# chorddiag(m3, groupColors = groupColors, groupnamePadding = 10)
+
+
+```
+
+##### MANOVA Пример
+
+Изпълнението на **MANOVA** теста става с функцията **manova**, като 
+като аргумент подаваме матрица от двата отклика **manova(cbind(y1, y2) ~ x, data = some_data)**
+
+```{r include=FALSE}
+two_response_groups_data <- groups_data %>%
+  rename(y1 = y) %>%
+  mutate(y2 = c(rnorm(n, 10), rnorm(n, 7), rnorm(n, 19), rnorm(n, 15), rnorm(n, 16))) %>%
+  mutate(sample = as.factor(sample), x = as.factor(x))
+```
+
+```{r}
+two_response_groups_data %>%
+  # изпълняваме функцията manova със Y = cbind(y1, y2)
+  manova(cbind(y1, y2) ~ x, data = .) %>%
+  # обобщение на модела
+  summary()
+```
+Виждаме, че F-статистиката е далеч над 1 и **pvalue**-то е изключително малко, откъдето отсъждаме, че определено различните групи имат ефект върху двата отклика.
+
+За да проверим, колко точно групите афектират двата отклика $y_1$ и $y_2$, можем да използваме 
+функцията **summary.aov** за да изпълним поединична **ANOVA**
+
+```{r}
+two_response_groups_data %>%
+  # изпълняваме функцията manova със Y = cbind(y1, y2)
+  manova(cbind(y1, y2) ~ x, data = .) %>%
+  # обобщение на модела експлицитно за двата отклика
+  summary.aov()
+```
+
+### ANOVA с корелирани извадки (разширение на т-тест)
+
+При ANOVA с корелирани извадки, отново тестваме за това дали извадките са еднакви или се различават по тяхното средно, но този път разглеждаме случая когато бихме могли да имаме зависимост между отделните групи.
+
+Пример за това би бил тестване за времето на действие на различни лекарства върху няколко различни пациенти.
+
+
+```{r}
+patients_df <- data.frame(
+  patient = as.factor(rep(1:5, each = 4)),
+  drug = as.factor(rep(1:4, times = 5)),
+  response_time = c(
+    41, 39, 27, 45,
+    25, 29, 21, 33,
+    35, 31, 29, 41,
+    49, 45, 31, 55,
+    37, 39, 25, 41
+  )
+)
+
+patients_df
 ```
 
 
+```{r}
+# Error(patients) задава променливата върху която гледаме двустранно
+# преди и слсед лекарството
+# У drug 
+aov(response_time ~ drug + Error(patient), data = patients_df) %>%
+  # Обобщение на модела
+  summary()
+```
 
